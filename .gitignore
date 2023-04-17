@@ -3,6 +3,7 @@ datasets
 !anomalib/datasets
 !tests/pre_merge/datasets
 results
+runs
 !anomalib/core/results
 
 # Jupyter Notebooks

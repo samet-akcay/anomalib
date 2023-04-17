@@ -1,11 +1,11 @@
 seed: 42
 compute_openvino: false
 hardware:
-  - cpu
+  # - cpu
   - gpu
 writer:
   - wandb
-  - tensorboard
+  # - tensorboard
 grid_search:
   dataset:
     category:
@@ -24,7 +24,18 @@ grid_search:
       - transistor
       - wood
       - zipper
-    image_size: [224]
+    image_size: [256]
   model_name:
-    - padim
-    - patchcore
+    # - cfa
+    # - cflow
+    # - csflow
+    # - dfkde
+    # - dfm
+    # - draem
+    # - fastflow
+    - ganomaly
+    # - padim
+    # - patchcore
+    # - reverse_distillation
+    # - rkde
+    # - stfpm

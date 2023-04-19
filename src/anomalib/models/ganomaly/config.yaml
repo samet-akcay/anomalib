@@ -47,7 +47,6 @@ model:
 metrics:
   image:
     - AUROC
-    - F1Score
   threshold:
     method: adaptive #options: [adaptive, manual]
     manual_image: null

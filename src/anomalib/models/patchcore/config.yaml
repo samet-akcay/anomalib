@@ -39,7 +39,6 @@ model:
 metrics:
   image:
     - AUROC
-    - F1Score
   pixel:
     - AUROC
     - AUPRO

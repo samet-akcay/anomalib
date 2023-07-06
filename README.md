@@ -284,6 +284,23 @@ Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License 
 
 > Note: These metrics are collected with image size of 256 and seed `42`. This common setting is used to make model comparisons fair.
 
+## New MVTec AD Dataset Benchmark
+
+| model               |   image_auroc |   image_f1 |   pixel_AUROC |   pixel_AUPRO |
+|:--------------------|--------------:|-----------:|--------------:|--------------:|
+| Padim               |      0.891474 |   0.91621  |      0.968385 |      0.916313 |
+| Patchcore           |      0.986522 |   0.983945 |      0.976172 |      0.908197 |
+| Cfa                 |      0.92313  |   0.956543 |      0.96473  |      0.885156 |
+| Stfpm               |      0.907953 |   0.936181 |      0.950275 |      0.878741 |
+| Fastflow            |      0.916044 |   0.930467 |      0.961661 |      0.877994 |
+| Cflow               |      0.887918 |   0.924229 |      0.964347 |      0.876814 |
+| Dfm                 |      0.947738 |   0.944685 |      0.966073 |      0.870182 |
+| ReverseDistillation |      0.708588 |   0.885274 |      0.93246  |      0.835546 |
+| Draem               |      0.783104 |   0.8772   |      0.575403 |      0.414449 |
+| Csflow              |      0.876844 |   0.92514  |      0.805981 |      0.398712 |
+| Dfkde               |      0.764726 |   0.86794  |      nan      |      nan      |
+| Ganomaly            |      0.470708 |   0.837272 |      nan      |      nan      |
+
 ## Image-Level AUC
 
 | Model           |                |    Avg    |  Carpet   |   Grid    |  Leather  |   Tile    |   Wood    |  Bottle   |   Cable   |  Capsule  | Hazelnut | Metal Nut |   Pill    |   Screw   | Toothbrush | Transistor |  Zipper   |

@@ -1,110 +1,173 @@
-"""Setup file for anomalib."""
+#!/usr/bin/env python
+# Copyright The Lightning AI team.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""This is the main and only one setup entry point for installing each package as stand-alone as well as joint
+installation for all packages.
 
-# Copyright (C) 2022 Intel Corporation
-# SPDX-License-Identifier: Apache-2.0
+There are considered three main scenarios for installing this project:
 
+1. Using PyPI registry when you can install `pytorch-lightning`, `lightning-app`, etc. or `lightning` for all.
 
+2. Installation from source code after cloning repository.
+    In such case we recommend to use command `pip install .` or `pip install -e .` for development version
+     (development ver. do not copy python files to your pip file system, just create links, so you can edit here)
+    In case you want to install just one package you need to export env. variable before calling `pip`
+
+     - for `pytorch-lightning` use `export PACKAGE_NAME=pytorch ; pip install .`
+     - for `lightning-fabric` use `export PACKAGE_NAME=fabric ; pip install .`
+     - for `lightning-app` use `export PACKAGE_NAME=app ; pip install .`
+
+3. Building packages as sdist or binary wheel and installing or publish to PyPI afterwords you use command
+    `python setup.py sdist` or `python setup.py bdist_wheel` accordingly.
+   In case you want to build just a particular package you want to set an environment variable:
+   `PACKAGE_NAME=lightning|pytorch|app|fabric python setup.py sdist|bdist_wheel`
+
+4. Automated releasing with GitHub action is natural extension of 3) is composed of three consecutive steps:
+    a) determine which packages shall be released based on version increment in `__version__.py` and eventually
+     compared against PyPI registry
+    b) with a parameterization build desired packages in to standard `dist/` folder
+    c) validate packages and publish to PyPI
+
+"""
+import contextlib
+import glob
+import logging
+import os
+import tempfile
 from importlib.util import module_from_spec, spec_from_file_location
-from pathlib import Path
 from types import ModuleType
+from typing import Generator, Mapping, Optional
 
-from setuptools import find_packages, setup
+import setuptools
+import setuptools.command.egg_info
 
-
-def load_module(name: str = "src/anomalib/__init__.py") -> ModuleType:
-    """Load Python Module.
-
-    Args:
-        name (str, optional): Name of the module to load.
-            Defaults to "anomalib/__init__.py".
-
-    Returns:
-        _type_: _description_
-    """
-    location = str(Path(__file__).parent / name)
-    spec = spec_from_file_location(name=name, location=location)
-    module = module_from_spec(spec)  # type: ignore[arg-type]
-    spec.loader.exec_module(module)  # type: ignore[union-attr]
-    return module
-
-
-def get_version() -> str:
-    """Get version from `anomalib.__init__`.
-
-    Version is stored in the main __init__ module in `anomalib`.
-    The varible storing the version is `__version__`. This function
-    reads `__init__` file, checks `__version__ variable and return
-    the value assigned to it.
-
-    Example:
-        >>> # Assume that __version__ = "0.2.6"
-        >>> get_version()
-        "0.2.6"
-
-    Returns:
-        str: `anomalib` version.
-    """
-    anomalib = load_module(name="src/anomalib/__init__.py")
-    return anomalib.__version__
-
-
-def get_required_packages(requirement_files: list[str]) -> list[str]:
-    """Get packages from requirements.txt file.
-
-    This function returns list of required packages from requirement files.
-
-    Args:
-        requirement_files (list[str]): txt files that contains list of required
-            packages.
-
-    Example:
-        >>> get_required_packages(requirement_files=["openvino"])
-        ['onnx>=1.8.1', 'networkx~=2.5', 'openvino-dev==2021.4.1', ...]
-
-    Returns:
-        list[str]: List of required packages
-    """
-    required_packages: list[str] = []
-
-    for requirement_file in requirement_files:
-        with Path(f"requirements/{requirement_file}.txt").open(encoding="utf8") as file:
-            for line in file:
-                package = line.strip()
-                if package and not package.startswith(("#", "-f")):
-                    required_packages.append(package)
-
-    return required_packages
-
-
-VERSION = get_version()
-LONG_DESCRIPTION = (Path(__file__).parent / "README.md").read_text(encoding="utf8")
-INSTALL_REQUIRES = get_required_packages(requirement_files=["base"])
-EXTRAS_REQUIRE = {
-    "loggers": get_required_packages(requirement_files=["loggers"]),
-    "notebooks": get_required_packages(requirement_files=["notebooks"]),
-    "openvino": get_required_packages(requirement_files=["openvino"]),
-    "full": get_required_packages(requirement_files=["loggers", "notebooks", "openvino"]),
+_PACKAGE_NAME = os.environ.get("PACKAGE_NAME")
+_PACKAGE_MAPPING = {
+    "anomalib": "anomalib",
+    # "pytorch": "pytorch_lightning",
+    # "app": "lightning_app",
+    # "fabric": "lightning_fabric",
 }
+# https://packaging.python.org/guides/single-sourcing-package-version/
+# http://blog.ionelmc.ro/2014/05/25/python-packaging/
+_PATH_ROOT = os.path.dirname(__file__)
+_PATH_SRC = os.path.join(_PATH_ROOT, "src")
+_PATH_REQUIRE = os.path.join(_PATH_ROOT, "requirements")
+_FREEZE_REQUIREMENTS = os.environ.get("FREEZE_REQUIREMENTS", "0").lower() in ("1", "true")
 
 
-setup(
-    name="anomalib",
-    version=get_version(),
-    author="Intel OpenVINO",
-    author_email="help@openvino.intel.com",
-    description="anomalib - Anomaly Detection Library",
-    long_description=LONG_DESCRIPTION,
-    long_description_content_type="text/markdown",
-    url="",
-    license="Copyright (c) Intel - All Rights Reserved. "
-    'Licensed under the Apache License, Version 2.0 (the "License")'
-    "See LICENSE file for more details.",
-    python_requires=">=3.10",
-    package_dir={"": "src"},
-    packages=find_packages(where="src", include=["anomalib", "anomalib.*"]),
-    install_requires=INSTALL_REQUIRES,
-    extras_require=EXTRAS_REQUIRE,
-    include_package_data=True,
-    package_data={"": ["config.yaml"]},
-    entry_points={"console_scripts": ["anomalib=anomalib.utils.cli.cli:main"]},
-)
+def _load_py_module(name: str, location: str) -> ModuleType:
+    spec = spec_from_file_location(name, location)
+    assert spec, f"Failed to load module {name} from {location}"
+    py = module_from_spec(spec)
+    assert spec.loader, f"ModuleSpec.loader is None for {name} from {location}"
+    spec.loader.exec_module(py)
+    return py
+
+
+def _named_temporary_file(directory: Optional[str] = None) -> str:
+    # `tempfile.NamedTemporaryFile` has issues in Windows
+    # https://github.com/deepchem/deepchem/issues/707#issuecomment-556002823
+    if directory is None:
+        directory = tempfile.gettempdir()
+    return os.path.join(directory, os.urandom(24).hex())
+
+
+@contextlib.contextmanager
+def _set_manifest_path(manifest_dir: str, aggregate: bool = False, mapping: Mapping = _PACKAGE_MAPPING) -> Generator:
+    if aggregate:
+        # aggregate all MANIFEST.in contents into a single temporary file
+        manifest_path = _named_temporary_file(manifest_dir)
+        lines = []
+        # load manifest and aggregated all manifests
+        for pkg in mapping.values():
+            pkg_manifest = os.path.join(_PATH_SRC, pkg, "MANIFEST.in")
+            if os.path.isfile(pkg_manifest):
+                with open(pkg_manifest) as fh:
+                    lines.extend(fh.readlines())
+        # convert anomalib_foo to anomalib/foo
+        for new, old in mapping.items():
+            if old == "anomalib":
+                continue  # avoid `anomalib` -> `anomalib/anomalib`
+            lines = [ln.replace(old, f"anomalib/{new}") for ln in lines]
+        lines = sorted(set(filter(lambda ln: not ln.strip().startswith("#"), lines)))
+        logging.debug(f"aggregated manifest consists of: {lines}")
+        with open(manifest_path, mode="w") as fp:
+            fp.writelines(lines)
+    else:
+        manifest_path = os.path.join(manifest_dir, "MANIFEST.in")
+        assert os.path.exists(manifest_path)
+    # avoid error: setup script specifies an absolute path
+    manifest_path = os.path.relpath(manifest_path, _PATH_ROOT)
+    logging.info("Set manifest path to", manifest_path)
+    setuptools.command.egg_info.manifest_maker.template = manifest_path
+    yield
+    # cleanup
+    setuptools.command.egg_info.manifest_maker.template = "MANIFEST.in"
+    if aggregate:
+        os.remove(manifest_path)
+
+
+if __name__ == "__main__":
+    assistant = _load_py_module(name="assistant", location=os.path.join(_PATH_ROOT, ".github", "assistant.py"))
+
+    if os.path.isdir(_PATH_SRC):
+        # copy the version information to all packages
+        assistant.distribute_version(_PATH_SRC)
+    print(f"Requested package: '{_PACKAGE_NAME}'")  # requires `-v` to appear
+
+    local_pkgs = [
+        os.path.basename(p)
+        for p in glob.glob(os.path.join(_PATH_SRC, "*"))
+        if os.path.isdir(p) and not p.endswith(".egg-info") and not os.path.basename(p) == "configs"
+    ]
+    print(f"Local package candidates: {local_pkgs}")
+    # TODO: Check this is_source_install logic
+    is_source_install = len(local_pkgs) > 1  # it was 2 in lightning.
+    print(f"Installing from source: {is_source_install}")
+    if is_source_install:
+        if _PACKAGE_NAME is not None and _PACKAGE_NAME not in _PACKAGE_MAPPING:
+            raise ValueError(
+                f"Unexpected package name: {_PACKAGE_NAME}. Possible choices are: {list(_PACKAGE_MAPPING)}"
+            )
+        package_to_install = _PACKAGE_MAPPING.get(_PACKAGE_NAME, "anomalib")
+        if package_to_install == "anomalib":
+            # merge all requirements files
+            # TODO: Here, we just need anomalib requirements.
+            assistant._load_aggregate_requirements(_PATH_REQUIRE, _FREEZE_REQUIREMENTS)
+        else:
+            # replace imports and copy the code
+            assistant.create_mirror_package(_PATH_SRC, _PACKAGE_MAPPING)
+    else:
+        assert len(local_pkgs) > 0
+        # PL as a package is distributed together with Fabric, so in such case there are more than one candidate
+        package_to_install = "pytorch_lightning" if "pytorch_lightning" in local_pkgs else local_pkgs[0]
+    print(f"Installing package: {package_to_install}")
+
+    # going to install with `setuptools.setup`
+    pkg_path = os.path.join(_PATH_SRC, package_to_install)
+    pkg_setup = os.path.join(pkg_path, "__setup__.py")
+    if not os.path.exists(pkg_setup):
+        raise RuntimeError(f"Something's wrong, no package was installed. Package name: {_PACKAGE_NAME}")
+    setup_module = _load_py_module(name=f"{package_to_install}_setup", location=pkg_setup)
+    setup_args = setup_module._setup_args()
+    is_main_pkg = package_to_install == "anomalib"
+    print(f"Installing as the main package: {is_main_pkg}")
+    if is_source_install:
+        # we are installing from source, set the correct manifest path
+        with _set_manifest_path(pkg_path, aggregate=is_main_pkg):
+            setuptools.setup(**setup_args)
+    else:
+        setuptools.setup(**setup_args)
+    print("Finished setup configuration.")

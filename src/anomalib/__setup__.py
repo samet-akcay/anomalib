@@ -1,11 +1,10 @@
 """Anoalib package setup."""
 
-import glob
 import os.path
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Dict
+from typing import Any
 
 from setuptools import find_packages
 
@@ -87,10 +86,10 @@ EXTRAS_REQUIRE = {
 #     extras["app-extra"] = extras["app-app"] + extras["app-cloud"] + extras["app-ui"] + extras["app-components"]
 #     extras["app-all"] = extras["app-extra"]
 #     extras["app-dev"] = extras["app-all"] + extras["app-test"]
-#     extras["data-data"] += extras["app-app"]  # todo: consider cutting/leaning this dependency
+#     extras["data-data"] += extras["app-app"]  # TODO: consider cutting/leaning this dependency
 #     extras["data-all"] = extras["data-data"] + extras["data-cloud"] + extras["data-examples"]
 #     extras["data-dev"] = extras["data-all"] + extras["data-test"]
-#     extras["store-store"] = extras["app-app"]  # todo: consider cutting/leaning this dependency
+#     extras["store-store"] = extras["app-app"]  # TODO: consider cutting/leaning this dependency
 
 #     # merge per-project extras of the same category, e.g. `app-test` + `fabric-test`
 #     for extra in list(extras):
@@ -109,11 +108,11 @@ EXTRAS_REQUIRE = {
 #     return extras
 
 
-def _setup_args() -> Dict[str, Any]:
+def _setup_args() -> dict[str, Any]:
     about = _load_py_module("about", os.path.join(_PACKAGE_ROOT, "__about__.py"))
     version = _load_py_module("version", os.path.join(_PACKAGE_ROOT, "__version__.py"))
     long_description = _ASSISTANT.load_readme_description(
-        _PROJECT_ROOT, homepage=about.__homepage__, version=version.version
+        _PROJECT_ROOT, homepage=about.__homepage__, version=version.version,
     )
 
     return {
@@ -131,8 +130,8 @@ def _setup_args() -> Dict[str, Any]:
         "long_description_content_type": "text/markdown",
         "include_package_data": True,
         "zip_safe": False,
-        "keywords": ["deep learning", "pytorch", "AI"],  # todo: aggregate tags from all packages
-        "python_requires": ">=3.8",  # todo: take the lowes based on all packages
+        "keywords": ["deep learning", "pytorch", "AI"],  # TODO: aggregate tags from all packages
+        "python_requires": ">=3.8",  # TODO: take the lowes based on all packages
         "entry_points": {
             "console_scripts": [
                 "anomalib = anomalib:_cli_entry_point",
@@ -165,5 +164,5 @@ def _setup_args() -> Dict[str, Any]:
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
             "Programming Language :: Python :: 3.11",
-        ],  # todo: consider aggregation/union of tags from particular packages
+        ],  # TODO: consider aggregation/union of tags from particular packages
     }

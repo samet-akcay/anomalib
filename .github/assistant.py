@@ -20,11 +20,12 @@ import shutil
 import tarfile
 import tempfile
 import urllib.request
+from collections.abc import Iterable, Iterator, Sequence
 from distutils.version import LooseVersion
 from itertools import chain
 from os.path import dirname, isfile
 from pathlib import Path
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Sequence, Tuple, Union
+from typing import Any, Optional, Union
 
 from pkg_resources import Requirement, parse_requirements, yield_lines
 
@@ -145,7 +146,7 @@ def _parse_requirements(strs: Union[str, Iterable[str]]) -> Iterator[_Requiremen
         pip_argument = None
 
 
-def load_requirements(path_dir: str, file_name: str = "base.txt", unfreeze: str = "all") -> List[str]:
+def load_requirements(path_dir: str, file_name: str = "base.txt", unfreeze: str = "all") -> list[str]:
     """Loading requirements from a file.
 
     >>> path_req = os.path.join(_PROJECT_ROOT, "requirements")
@@ -176,7 +177,7 @@ def load_readme_description(path_dir: str, homepage: str, version: str) -> str:
 
     # drop images from readme
     text = text.replace(
-        "![PT to PL](docs/source-pytorch/_static/images/general/pl_quick_start_full_compressed.gif)", ""
+        "![PT to PL](docs/source-pytorch/_static/images/general/pl_quick_start_full_compressed.gif)", "",
     )
 
     # https://github.com/Lightning-AI/lightning/raw/master/docs/source/_static/images/lightning_module/pt_to_pl.png
@@ -184,7 +185,7 @@ def load_readme_description(path_dir: str, homepage: str, version: str) -> str:
     # replace relative repository path to absolute link to the release
     #  do not replace all "docs" as in the readme we reger some other sources with particular path to docs
     text = text.replace(
-        "docs/source-pytorch/_static/", f"{os.path.join(github_source_url, 'docs/source-app/_static/')}"
+        "docs/source-pytorch/_static/", f"{os.path.join(github_source_url, 'docs/source-app/_static/')}",
     )
 
     # readthedocs badge
@@ -199,7 +200,7 @@ def load_readme_description(path_dir: str, homepage: str, version: str) -> str:
 
     skip_begin = r"<!-- following section will be skipped from PyPI description -->"
     skip_end = r"<!-- end skipping PyPI description -->"
-    # todo: wrap content as commented description
+    # TODO: wrap content as commented description
     return re.sub(rf"{skip_begin}.+?{skip_end}", "<!--  -->", text, flags=re.IGNORECASE + re.DOTALL)
 
     # # https://github.com/Borda/pytorch-lightning/releases/download/1.1.0a6/codecov_badge.png
@@ -222,8 +223,8 @@ def distribute_version(src_folder: str, ver_file: str = "version.info") -> None:
 
 def _download_frontend(pkg_path: str, version: str = "v0.0.0"):
     """Downloads an archive file for a specific release of the Lightning frontend and extracts it to the correct
-    directory."""
-
+    directory.
+    """
     try:
         frontend_dir = pathlib.Path(pkg_path, "ui")
         download_dir = tempfile.mkdtemp()
@@ -264,7 +265,7 @@ def _load_aggregate_requirements(req_dir: str = "requirements", freeze_requireme
         fp.writelines([ln + os.linesep for ln in requires] + [os.linesep])
 
 
-def _retrieve_files(directory: str, *ext: str) -> List[str]:
+def _retrieve_files(directory: str, *ext: str) -> list[str]:
     all_files = []
     for root, _, files in os.walk(directory):
         for fname in files:
@@ -274,7 +275,7 @@ def _retrieve_files(directory: str, *ext: str) -> List[str]:
     return all_files
 
 
-def _replace_imports(lines: List[str], mapping: List[Tuple[str, str]], lightning_by: str = "") -> List[str]:
+def _replace_imports(lines: list[str], mapping: list[tuple[str, str]], lightning_by: str = "") -> list[str]:
     """Replace imports of standalone package to lightning.
 
     >>> lns = [
@@ -362,7 +363,7 @@ def copy_replace_imports(
             fo.writelines(lines)
 
 
-def create_mirror_package(source_dir: str, package_mapping: Dict[str, str]) -> None:
+def create_mirror_package(source_dir: str, package_mapping: dict[str, str]) -> None:
     # replace imports and copy the code
     mapping = package_mapping.copy()
     mapping.pop("lightning", None)  # pop this key to avoid replacing `lightning` to `lightning.lightning`
@@ -433,7 +434,7 @@ class AssistantCLI:
         source_imports = source_import.strip().split(",")
         target_imports = target_import.strip().split(",")
         copy_replace_imports(
-            source_dir, source_imports, target_imports, target_dir=target_dir, lightning_by=lightning_by
+            source_dir, source_imports, target_imports, target_dir=target_dir, lightning_by=lightning_by,
         )
 
     @staticmethod

@@ -45,9 +45,10 @@ import glob
 import logging
 import os
 import tempfile
+from collections.abc import Generator, Mapping
 from importlib.util import module_from_spec, spec_from_file_location
 from types import ModuleType
-from typing import Generator, Mapping, Optional
+from typing import Optional
 
 import setuptools
 import setuptools.command.egg_info
@@ -130,7 +131,7 @@ if __name__ == "__main__":
     local_pkgs = [
         os.path.basename(p)
         for p in glob.glob(os.path.join(_PATH_SRC, "*"))
-        if os.path.isdir(p) and not p.endswith(".egg-info") and not os.path.basename(p) == "configs"
+        if os.path.isdir(p) and not p.endswith(".egg-info") and os.path.basename(p) != "configs"
     ]
     print(f"Local package candidates: {local_pkgs}")
     # TODO: Check this is_source_install logic
@@ -139,7 +140,7 @@ if __name__ == "__main__":
     if is_source_install:
         if _PACKAGE_NAME is not None and _PACKAGE_NAME not in _PACKAGE_MAPPING:
             raise ValueError(
-                f"Unexpected package name: {_PACKAGE_NAME}. Possible choices are: {list(_PACKAGE_MAPPING)}"
+                f"Unexpected package name: {_PACKAGE_NAME}. Possible choices are: {list(_PACKAGE_MAPPING)}",
             )
         package_to_install = _PACKAGE_MAPPING.get(_PACKAGE_NAME, "anomalib")
         if package_to_install == "anomalib":

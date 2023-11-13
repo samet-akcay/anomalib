@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import time
-from pathlib import Path
 
 __author__ = "Intel OpenVINO"
 __author_email__ = "help@openvino.intel.com"

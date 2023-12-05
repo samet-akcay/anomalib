@@ -66,7 +66,7 @@ def make_shanghaitech_dataset(root: Path, scene: int, split: Split | str | None 
 
         >>> root = Path('./shanghaiTech')
         >>> scene = 1
-        >>> samples = make_avenue_dataset(root, scene, split='test')
+        >>> samples = make_shanghaitech_dataset(root, scene, split='test')
         >>> samples.head()
                                   root  folder  ... split                                         mask_path
         0  shanghaitech/testing/frames  frames  ...  test  shanghaitech/testing/test_pixel_mask/01_0014.npy
@@ -293,7 +293,7 @@ class ShanghaiTech(AnomalibVideoDataModule):
             Defaults to ``1``.
         target_frame (VideoTargetFrame): Specifies the target frame in the video clip, used for ground truth retrieval
             Defaults to ``VideoTargetFrame.LAST``.
-        task TaskType): Task type, 'classification', 'detection' or 'segmentation'
+        task (TaskType): Task type, 'classification', 'detection' or 'segmentation'
             Defaults to ``TaskType.SEGMENTATION``.
         image_size (int | tuple[int, int] | None, optional): Size of the input image.
             Defaults to ``(256, 256)``.

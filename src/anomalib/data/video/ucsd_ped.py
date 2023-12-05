@@ -65,13 +65,15 @@ def make_ucsd_dataset(path: Path, split: str | Split | None = None) -> DataFrame
 
         >>> samples = make_ucsd_dataset(path, split='test')
         >>> samples.head()
-           root             folder image_path                    mask_path                         split
-        0  UCSDped/UCSDped2 Test   UCSDped/UCSDped2/Test/Test001 UCSDped/UCSDped2/Test/Test001_gt  test
-        1  UCSDped/UCSDped2 Test   UCSDped/UCSDped2/Test/Test002 UCSDped/UCSDped2/Test/Test002_gt  test
+                       root folder                     image_path                         mask_path split
+        0  UCSDped/UCSDped2   Test  UCSDped/UCSDped2/Test/Test001  UCSDped/UCSDped2/Test/Test001_gt  test
+        1  UCSDped/UCSDped2   Test  UCSDped/UCSDped2/Test/Test002  UCSDped/UCSDped2/Test/Test002_gt  test
         ...
 
     Returns:
         DataFrame: an output dataframe containing samples for the requested split (ie., train or test)
+
+
     """
     folders = [filename for filename in sorted(path.glob("*/*")) if filename.is_dir()]
     folders = [folder for folder in folders if list(folder.glob("*.tif"))]
@@ -96,10 +98,17 @@ def make_ucsd_dataset(path: Path, split: str | Split | None = None) -> DataFrame
 
 
 class UCSDpedClipsIndexer(ClipsIndexer):
-    """Clips class for UCSDped dataset."""
+    """Clips indexer for UCSDped dataset."""
 
     def get_mask(self, idx: int) -> np.ndarray | None:
-        """Retrieve the masks from the file system."""
+        """Retrieve the masks from the file system.
+
+        Args:
+            idx (int): index of the subclip. Must be between 0 and num_clips().
+
+        Returns:
+            torch.Tensor | None: GT mask for the subclip.
+        """
         video_idx, frames_idx = self.get_clip_location(idx)
         mask_folder = self.mask_paths[video_idx]
         if mask_folder == "":  # no gt masks available for this clip
@@ -127,10 +136,10 @@ class UCSDpedClipsIndexer(ClipsIndexer):
             idx (int): index of the subclip. Must be between 0 and num_clips().
 
         Returns:
-            video (torch.Tensor)
-            audio (torch.Tensor)
-            info (dict)
-            video_idx (int): index of the video in `video_paths`
+            Tensor: Video clip of shape (T, H, W, C)
+            Tensor: Audio placeholder
+            dict: metadata dictionary placeholder
+            int: index of the video in `video_paths`
         """
         if idx >= self.num_clips():
             msg = f"Index {idx} out of range ({self.num_clips()} number of clips)"
@@ -152,24 +161,86 @@ class UCSDpedDataset(AnomalibVideoDataset):
 
     Args:
         task (TaskType): Task type, 'classification', 'detection' or 'segmentation'
-        root (Path | str): Path to the root of the dataset
         category (str): Sub-category of the dataset, e.g. "UCSDped1" or "UCSDped2"
         transform (A.Compose): Albumentations Compose object describing the transforms that are applied to the inputs.
-        split (str | Split | None): Split of the dataset, usually Split.TRAIN or Split.TEST
+        split (Split): Split of the dataset, usually Split.TRAIN or Split.TEST
+        root (Path | str): Path to the root of the dataset.
+            Defaults to ``./datasets/ucsd``.
         clip_length_in_frames (int, optional): Number of video frames in each clip.
+            Defaults to ``2``.
         frames_between_clips (int, optional): Number of frames between each consecutive video clip.
+            Defaults to ``1``.
         target_frame (VideoTargetFrame): Specifies the target frame in the video clip, used for ground truth retrieval
+            Defaults to ``VideoTargetFrame.LAST``.
+
+    Examples:
+        To create a UCSDped dataset to train a classification model:
+
+        .. code-block:: python
+
+            transform = A.Compose([A.Resize(256, 256), A.pytorch.ToTensorV2()])
+            dataset = UCSDpedDataset(
+                task="classification",
+                category="UCSDped2",
+                transform=transform,
+                split="train",
+                root="./datasets/ucsd/",
+            )
+
+            dataset.setup()
+            dataset[0].keys()
+
+            # Output: dict_keys(['image', 'video_path', 'frames', 'last_frame', 'original_image'])
+
+        If you would like to test a segmentation model, you can use the following code:
+
+        .. code-block:: python
+
+            dataset = UCSDpedDataset(
+                task="segmentation",
+                category="UCSDped2",
+                transform=transform,
+                split="test",
+                root="./datasets/ucsd/",
+            )
+
+            dataset.setup()
+            dataset[0].keys()
+
+            # Output: dict_keys(['image', 'mask', 'video_path', 'frames', 'last_frame', 'original_image', 'label'])
+
+        UCSDped video dataset can also be used as an image dataset if you set the clip length to 1. This means that
+        each video frame will be treated as a separate sample. This is useful for training a classification model on the
+        UCSDped dataset. The following code shows how to create an image dataset for classification:
+
+        .. code-block:: python
+
+            dataset = UCSDpedDataset(
+                task="classification",
+                category="UCSDped2",
+                transform=transform,
+                split="test",
+                root="./datasets/ucsd/",
+                clip_length_in_frames=1,
+            )
+
+            dataset.setup()
+            dataset[0].keys()
+            # Output: dict_keys(['image', 'video_path', 'frames', 'last_frame', 'original_image', 'label'])
+
+            dataset[0]["image"].shape
+            # Output: torch.Size([3, 256, 256])
     """
 
     def __init__(
         self,
         task: TaskType,
-        root: str | Path,
         category: str,
         transform: A.Compose,
         split: Split,
+        root: str | Path = "./datasets/ucsd",
         clip_length_in_frames: int = 2,
-        frames_between_clips: int = 10,
+        frames_between_clips: int = 1,
         target_frame: VideoTargetFrame = VideoTargetFrame.LAST,
     ) -> None:
         super().__init__(task, transform, clip_length_in_frames, frames_between_clips, target_frame)
@@ -187,32 +258,91 @@ class UCSDped(AnomalibVideoDataModule):
     """UCSDped DataModule class.
 
     Args:
-        root (Path | str): Path to the root of the dataset
-        category (str): Sub-category of the dataset, e.g. "UCSDped1" or "UCSDped2"
+        root (Path | str): Path to the root of the dataset.
+            Defaults to ``./datasets/ucsd``.
+        category (str): Sub-category of the dataset, e.g. "UCSDped1" or "UCSDped2".
+            Defaults to ``UCSDped2``.
         clip_length_in_frames (int, optional): Number of video frames in each clip.
+            Defaults to ``2``.
         frames_between_clips (int, optional): Number of frames between each consecutive video clip.
+            Defaults to ``1``.
         target_frame (VideoTargetFrame): Specifies the target frame in the video clip, used for ground truth retrieval
-        task (TaskType): Task type, 'classification', 'detection' or 'segmentation'
+            Defaults to ``VideoTargetFrame.LAST``.
+        task (TaskType): Task type, 'classification', 'detection' or 'segmentation'.
+            Defaults to ``TaskType.SEGMENTATION``.
         image_size (int | tuple[int, int] | None, optional): Size of the input image.
-            Defaults to None.
+            Defaults to ``(256, 256)``.
         center_crop (int | tuple[int, int] | None, optional): When provided, the images will be center-cropped
             to the provided dimensions.
-        normalize (bool): When True, the images will be normalized to the ImageNet statistics.
-        center_crop (int | tuple[int, int] | None, optional): When provided, the images will be center-cropped
-            to the provided dimensions.
-        normalize (bool): When True, the images will be normalized to the ImageNet statistics.
-        train_batch_size (int, optional): Training batch size. Defaults to 32.
-        eval_batch_size (int, optional): Test batch size. Defaults to 32.
-        num_workers (int, optional): Number of workers. Defaults to 8.
+            Defaults to ``None``.
+        normalization (InputNormalizationMethod | str): Normalization method to be applied to the input images.
+            Defaults to ``InputNormalizationMethod.IMAGENET``.
+        train_batch_size (int, optional): Training batch size.
+            Defaults to ``32``.
+        eval_batch_size (int, optional): Test batch size.
+            Defaults to ``32``.
+        num_workers (int, optional): Number of workers.
+            Defaults to ``8``.
         transform_config_train (str | A.Compose | None, optional): Config for pre-processing
             during training.
-            Defaults to None.
+            Defaults to ``None``.
         transform_config_val (str | A.Compose | None, optional): Config for pre-processing
             during validation.
-            Defaults to None.
+            Defaults to ``None``.
         val_split_mode (ValSplitMode): Setting that determines how the validation subset is obtained.
+            Defaults to ``ValSplitMode.FROM_TEST``.
         val_split_ratio (float): Fraction of train or test images that will be reserved for validation.
+            Defaults to ``0.5``.
         seed (int | None, optional): Seed which may be set to a fixed value for reproducibility.
+            Defaults to ``None``.
+
+    Examples:
+        To create a UCSDped DataModule for training a classification model:
+
+        .. code-block:: python
+
+            datamodule = UCSDped()
+            datamodule.setup()
+
+            i, data = next(enumerate(datamodule.train_dataloader()))
+            data.keys()
+            # Output: dict_keys(['image', 'video_path', 'frames', 'last_frame', 'original_image'])
+
+            i, data = next(enumerate(datamodule.test_dataloader()))
+            data.keys()
+            # Output: dict_keys(['image', 'mask', 'video_path', 'frames', 'last_frame', 'original_image', 'label'])
+
+            data["image"].shape
+            # Output: torch.Size([32, 2, 3, 256, 256])
+
+        Note that the default task type is segmentation and the dataloader returns a mask in addition to the input.
+        Also, it is important to note that the dataloader returns a batch of clips, where each clip is a sequence of
+        frames. The number of frames in each clip is determined by the ``clip_length_in_frames`` parameter. The
+        ``frames_between_clips`` parameter determines the number of frames between each consecutive clip. The
+        ``target_frame`` parameter determines which frame in the clip is used for ground truth retrieval. For example,
+        if ``clip_length_in_frames=2``, ``frames_between_clips=1`` and ``target_frame=VideoTargetFrame.LAST``, then the
+        dataloader will return a batch of clips where each clip contains two consecutive frames from the video. The
+        second frame in each clip will be used as the ground truth for the first frame in the clip. The following code
+        shows how to create a dataloader for classification:
+
+        .. code-block:: python
+
+            datamodule = UCSDped(
+                task="classification",
+                clip_length_in_frames=2,
+                frames_between_clips=1,
+                target_frame=VideoTargetFrame.LAST
+            )
+            datamodule.setup()
+
+            i, data = next(enumerate(datamodule.train_dataloader()))
+            data.keys()
+            # Output: dict_keys(['image', 'video_path', 'frames', 'last_frame', 'original_image'])
+
+            data["image"].shape
+            # Output: torch.Size([32, 2, 3, 256, 256])
+
+        .. code-block:: python
     """
 
     def __init__(
@@ -220,13 +350,13 @@ class UCSDped(AnomalibVideoDataModule):
         root: Path | str = "./datasets/ucsd",
         category: str = "UCSDped2",
         clip_length_in_frames: int = 2,
-        frames_between_clips: int = 10,
+        frames_between_clips: int = 1,
         target_frame: VideoTargetFrame = VideoTargetFrame.LAST,
         task: TaskType = TaskType.SEGMENTATION,
         image_size: int | tuple[int, int] = (256, 256),
         center_crop: int | tuple[int, int] | None = None,
         normalization: InputNormalizationMethod | str = InputNormalizationMethod.IMAGENET,
-        train_batch_size: int = 8,
+        train_batch_size: int = 32,
         eval_batch_size: int = 32,
         num_workers: int = 8,
         transform_config_train: str | A.Compose | None = None,
@@ -283,7 +413,57 @@ class UCSDped(AnomalibVideoDataModule):
         )
 
     def prepare_data(self) -> None:
-        """Download the dataset if not available."""
+        """Download the dataset if not available.
+
+        This method checks if the specified dataset is available in the file system.
+        If not, it downloads and extracts the dataset into the appropriate directory.
+
+        Example:
+            Assume the dataset is not available on the file system.
+            Here's how the directory structure looks before and after calling the
+            `prepare_data` method:
+
+            Before:
+
+            .. code-block:: bash
+
+                $ tree datasets
+                datasets
+                ├── dataset1
+                └── dataset2
+
+            Calling the method:
+
+            .. code-block:: python
+
+                >> datamodule = UCSDped()
+                >> datamodule.prepare_data()
+
+            After:
+
+            .. code-block:: bash
+
+                $ tree datasets
+                datasets
+                ├── dataset1
+                ├── dataset2
+                └── ucsd
+                    ├── UCSDped1
+                    |   └── ...
+                    └── UCSDped2
+                        ├── Test
+                        │   ├── Test012
+                        │   │   ├── ...
+                        │   │   └── 180.tif
+                        │   └── Test012_gt
+                        │       ├── ...
+                        │       └── frame180.bmp
+                        └── Train
+                            ├── ...
+                            └── Train016
+                                ├── ...
+                                └── 150.tif
+        """
         if (self.root / self.category).is_dir():
             logger.info("Found the dataset.")
         else:

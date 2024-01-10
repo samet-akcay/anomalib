@@ -42,7 +42,7 @@ def connected_components_cpu(image: Tensor) -> Tensor:
     components = torch.zeros_like(image)
     label_idx = 1
     for i, mask in enumerate(image):
-        mask = mask.squeeze().numpy().astype(np.uint8)
+        mask = mask.squeeze().cpu().numpy().astype(np.uint8)
         _, comps = cv2.connectedComponents(mask)
         # remap component values to make sure every component has a unique value when outputs are concatenated
         for label in np.unique(comps)[1:]:

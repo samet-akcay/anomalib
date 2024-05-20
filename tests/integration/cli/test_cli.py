@@ -6,13 +6,12 @@ This just checks if one of the model works end-to-end. The rest of the models ar
 # Copyright (C) 2023-2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-
 from pathlib import Path
 
 import pytest
 import torch
 
-from anomalib.cli import AnomalibCLI
+from anomalib.cli import CLI
 from anomalib.deploy import ExportType
 
 
@@ -26,7 +25,7 @@ class TestCLI:
             dataset_path (Path): Root of the synthetic/original dataset.
             project_path (Path): Path to temporary project folder.
         """
-        AnomalibCLI(
+        CLI(
             args=[
                 "fit",
                 *self._get_common_cli_args(dataset_path, project_path),
@@ -41,7 +40,7 @@ class TestCLI:
             dataset_path (Path): Root of the synthetic/original dataset.
             project_path (Path): Path to temporary project folder.
         """
-        AnomalibCLI(
+        CLI(
             args=[
                 "test",
                 *self._get_common_cli_args(dataset_path, project_path),
@@ -58,7 +57,7 @@ class TestCLI:
             dataset_path (Path): Root of the synthetic/original dataset.
             project_path (Path): Path to temporary project folder.
         """
-        AnomalibCLI(
+        CLI(
             args=[
                 "train",
                 *self._get_common_cli_args(dataset_path, project_path),
@@ -75,7 +74,7 @@ class TestCLI:
             dataset_path (Path): Root of the synthetic/original dataset.
             project_path (Path): Path to temporary project folder.
         """
-        AnomalibCLI(
+        CLI(
             args=[
                 "validate",
                 *self._get_common_cli_args(dataset_path, project_path),
@@ -95,7 +94,7 @@ class TestCLI:
             project_path (Path): Path to temporary project folder.
         """
         # Test with MVTec Dataset
-        AnomalibCLI(
+        CLI(
             args=[
                 "predict",
                 *self._get_common_cli_args(
@@ -117,7 +116,7 @@ class TestCLI:
             project_path (Path): Path to temporary project folder.
         """
         # Test with image path
-        AnomalibCLI(
+        CLI(
             args=[
                 "predict",
                 "--data",
@@ -141,7 +140,7 @@ class TestCLI:
             project_path (Path): Path to temporary project folder.
         """
         # Test with image path
-        AnomalibCLI(
+        CLI(
             args=[
                 "predict",
                 "--data",
@@ -169,7 +168,7 @@ class TestCLI:
             project_path (Path): Path to temporary project folder.
             export_type (ExportType): Export type.
         """
-        AnomalibCLI(
+        CLI(
             args=[
                 "export",
                 "--export_type",

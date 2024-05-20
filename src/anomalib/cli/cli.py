@@ -9,6 +9,7 @@ from functools import partial
 from pathlib import Path
 from types import MethodType
 from typing import Any
+from warnings import warn
 
 from jsonargparse import ActionConfigFile, ArgumentParser, Namespace
 from jsonargparse._actions import _ActionSubCommands
@@ -37,7 +38,7 @@ except ImportError:
     _LIGHTNING_AVAILABLE = False
 
 
-class AnomalibCLI:
+class CLI:
     """Implementation of a fully configurable CLI tool for anomalib.
 
     The advantage of this tool is its flexibility to configure the pipeline
@@ -469,10 +470,18 @@ class AnomalibCLI:
         self.model.configure_optimizers = MethodType(fn, self.model)
 
 
+class AnomalibCLI(CLI):
+    """Backward compatibility class for AnomalibCLI."""
+
+    def __init__(self, args: Sequence[str] | None = None) -> None:
+        warn("`AnomalibCLI` is deprecated, please use `CLI` instead.", DeprecationWarning, stacklevel=2)
+        super().__init__(args)
+
+
 def main() -> None:
     """Trainer via Anomalib CLI."""
     configure_logger()
-    AnomalibCLI()
+    CLI()
 
 
 if __name__ == "__main__":

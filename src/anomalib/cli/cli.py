@@ -482,7 +482,7 @@ class CLI:
 
 
 class AnomalibCLI(CLI):
-    """AnomalibCLI has been deprecated, and only used for backward compatibility."""
+    """AnomalibCLI has been deprecated, and is only used for backward compatibility."""
 
     def __init__(self, *args, **kwargs) -> None:
         warnings.warn(

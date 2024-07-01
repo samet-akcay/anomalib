@@ -20,7 +20,7 @@ from torchvision.transforms.v2 import Transform
 from tqdm import tqdm
 
 from anomalib import TaskType
-from anomalib.data.base import AnomalibDataModule, AnomalibDataset
+from anomalib.data.base import AnomalibDataModule, Dataset
 from anomalib.data.utils import (
     DownloadInfo,
     LabelName,
@@ -120,7 +120,7 @@ def make_btech_dataset(path: Path, split: str | Split | None = None) -> DataFram
     return samples
 
 
-class BTechDataset(AnomalibDataset):
+class BTechDataset(Dataset):
     """Btech Dataset class.
 
     Args:

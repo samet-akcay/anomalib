@@ -3,7 +3,6 @@
 # Copyright (C) 2022-2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -21,7 +20,7 @@ from anomalib.data.utils.synthetic import SyntheticAnomalyDataset
 if TYPE_CHECKING:
     from pandas import DataFrame
 
-    from anomalib.data.base.dataset import AnomalibDataset
+    from anomalib.data.base.dataset import Dataset
 
 logger = logging.getLogger(__name__)
 
@@ -111,9 +110,9 @@ class AnomalibDataModule(LightningDataModule, ABC):
         self._train_transform = train_transform or transform
         self._eval_transform = eval_transform or transform
 
-        self.train_data: AnomalibDataset
-        self.val_data: AnomalibDataset
-        self.test_data: AnomalibDataset
+        self.train_data: Dataset
+        self.val_data: Dataset
+        self.test_data: Dataset
 
         self._samples: DataFrame | None = None
         self._category: str = ""

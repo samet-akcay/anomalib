@@ -15,7 +15,7 @@ from torchvision.tv_tensors import Mask
 
 from anomalib import TaskType
 from anomalib.data.base.datamodule import AnomalibDataModule
-from anomalib.data.base.dataset import AnomalibDataset
+from anomalib.data.base.dataset import Dataset
 from anomalib.data.utils import ValSplitMode, masks_to_boxes
 from anomalib.data.utils.video import ClipsIndexer
 
@@ -35,7 +35,7 @@ class VideoTargetFrame(str, Enum):
     ALL = "all"
 
 
-class AnomalibVideoDataset(AnomalibDataset, ABC):
+class AnomalibVideoDataset(Dataset, ABC):
     """Base video anomalib dataset class.
 
     Args:

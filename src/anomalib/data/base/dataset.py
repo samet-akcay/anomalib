@@ -12,12 +12,13 @@ from pathlib import Path
 import pandas as pd
 import torch
 from pandas import DataFrame
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset as TorchDataset
 from torchvision.transforms.v2 import Transform
 from torchvision.tv_tensors import Mask
 
 from anomalib import TaskType
 from anomalib.data.utils import LabelName, masks_to_boxes, read_image, read_mask
+from anomalib.utils import create_class_alias_with_deprecation_warning
 
 _EXPECTED_COLUMNS_CLASSIFICATION = ["image_path", "split"]
 _EXPECTED_COLUMNS_SEGMENTATION = [*_EXPECTED_COLUMNS_CLASSIFICATION, "mask_path"]
@@ -30,7 +31,7 @@ _EXPECTED_COLUMNS_PERTASK = {
 logger = logging.getLogger(__name__)
 
 
-class AnomalibDataset(Dataset, ABC):
+class Dataset(TorchDataset, ABC):
     """Anomalib dataset.
 
     The dataset is based on a dataframe that contains the information needed by the dataloader to load each of
@@ -83,7 +84,7 @@ class AnomalibDataset(Dataset, ABC):
         """Get length of the dataset."""
         return len(self.samples)
 
-    def subsample(self, indices: Sequence[int], inplace: bool = False) -> "AnomalibDataset":
+    def subsample(self, indices: Sequence[int], inplace: bool = False) -> "Dataset":
         """Subsamples the dataset at the provided indices.
 
         Args:
@@ -191,7 +192,7 @@ class AnomalibDataset(Dataset, ABC):
 
         return item
 
-    def __add__(self, other_dataset: "AnomalibDataset") -> "AnomalibDataset":
+    def __add__(self, other_dataset: "Dataset") -> "Dataset":
         """Concatenate this dataset with another dataset.
 
         Args:
@@ -206,3 +207,7 @@ class AnomalibDataset(Dataset, ABC):
         dataset = copy.deepcopy(self)
         dataset.samples = pd.concat([self.samples, other_dataset.samples], ignore_index=True)
         return dataset
+
+
+# NOTE: This is for backward-compatibility and will be removed in future versions.
+AnomalibDataset = create_class_alias_with_deprecation_warning(Dataset, "AnomalibDataset")

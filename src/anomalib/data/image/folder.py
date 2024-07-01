@@ -13,7 +13,7 @@ from pandas import DataFrame
 from torchvision.transforms.v2 import Transform
 
 from anomalib import TaskType
-from anomalib.data.base import AnomalibDataModule, AnomalibDataset
+from anomalib.data.base import AnomalibDataModule, Dataset
 from anomalib.data.errors import MisMatchError
 from anomalib.data.utils import (
     DirType,
@@ -182,7 +182,7 @@ def make_folder_dataset(
     return samples
 
 
-class FolderDataset(AnomalibDataset):
+class FolderDataset(Dataset):
     """Folder dataset.
 
     This class is used to create a dataset from a folder. The class utilizes the Torch Dataset class.

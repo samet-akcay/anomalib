@@ -6,7 +6,6 @@ This dataset can be used when there is a lack of real anomalous data.
 # Copyright (C) 2022-2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-
 import logging
 import math
 import shutil
@@ -20,7 +19,7 @@ from pandas import DataFrame, Series
 from torchvision.transforms.v2 import Compose
 
 from anomalib import TaskType
-from anomalib.data.base.dataset import AnomalibDataset
+from anomalib.data.base.dataset import Dataset
 from anomalib.data.utils import Augmenter, Split, read_image
 
 logger = logging.getLogger(__name__)
@@ -110,7 +109,7 @@ def make_synthetic_dataset(
     return pd.concat([normal_samples, anomalous_samples], ignore_index=True)
 
 
-class SyntheticAnomalyDataset(AnomalibDataset):
+class SyntheticAnomalyDataset(Dataset):
     """Dataset which reads synthetically generated anomalous images from a temporary folder.
 
     Args:
@@ -140,7 +139,7 @@ class SyntheticAnomalyDataset(AnomalibDataset):
         self.samples = make_synthetic_dataset(self.source_samples, self.im_dir, self.mask_dir, 0.5)
 
     @classmethod
-    def from_dataset(cls: type["SyntheticAnomalyDataset"], dataset: AnomalibDataset) -> "SyntheticAnomalyDataset":
+    def from_dataset(cls: type["SyntheticAnomalyDataset"], dataset: Dataset) -> "SyntheticAnomalyDataset":
         """Create a synthetic anomaly dataset from an existing dataset of normal images.
 
         Args:

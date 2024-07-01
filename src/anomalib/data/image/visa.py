@@ -21,7 +21,6 @@ Reference:
 # Subset splitting code adapted from https://github.com/amazon-science/spot-diff
 # Original licence: Apache-2.0
 
-
 import csv
 import logging
 import shutil
@@ -31,7 +30,7 @@ import cv2
 from torchvision.transforms.v2 import Transform
 
 from anomalib import TaskType
-from anomalib.data.base import AnomalibDataModule, AnomalibDataset
+from anomalib.data.base import AnomalibDataModule, Dataset
 from anomalib.data.utils import (
     DownloadInfo,
     Split,
@@ -68,7 +67,7 @@ CATEGORIES = (
 )
 
 
-class VisaDataset(AnomalibDataset):
+class VisaDataset(Dataset):
     """VisA dataset class.
 
     Args:

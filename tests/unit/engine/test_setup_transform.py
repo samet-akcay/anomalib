@@ -13,12 +13,12 @@ from torch.utils.data import DataLoader
 from torchvision.transforms.v2 import Resize, Transform
 
 from anomalib import LearningType, TaskType
-from anomalib.data import AnomalibDataModule, AnomalibDataset
+from anomalib.data import AnomalibDataModule, Dataset
 from anomalib.engine import Engine
 from anomalib.models import AnomalyModule
 
 
-class DummyDataset(AnomalibDataset):
+class DummyDataset(Dataset):
     """Dummy dataset for testing the setup_transform method."""
 
     def __init__(self, transform: Transform = None) -> None:

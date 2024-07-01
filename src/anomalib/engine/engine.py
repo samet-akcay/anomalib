@@ -13,7 +13,8 @@ from lightning.pytorch.callbacks import Callback, RichModelSummary, RichProgress
 from lightning.pytorch.loggers import Logger
 from lightning.pytorch.trainer import Trainer
 from lightning.pytorch.utilities.types import _EVALUATE_OUTPUT, _PREDICT_OUTPUT, EVAL_DATALOADERS, TRAIN_DATALOADERS
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
+from torch.utils.data import Dataset as TorchDataset
 from torchmetrics import Metric
 from torchvision.transforms.v2 import Transform
 
@@ -26,7 +27,7 @@ from anomalib.callbacks.post_processor import _PostProcessorCallback
 from anomalib.callbacks.thresholding import _ThresholdCallback
 from anomalib.callbacks.timer import TimerCallback
 from anomalib.callbacks.visualizer import _VisualizationCallback
-from anomalib.data import AnomalibDataModule, AnomalibDataset, PredictDataset
+from anomalib.data import AnomalibDataModule, Dataset, PredictDataset
 from anomalib.deploy import CompressionType, ExportType
 from anomalib.models import AnomalyModule
 from anomalib.utils.normalization import NormalizationMethod
@@ -255,7 +256,7 @@ class Engine:
         val_dataloaders: EVAL_DATALOADERS | None = None,
         test_dataloaders: EVAL_DATALOADERS | None = None,
         datamodule: AnomalibDataModule | None = None,
-        dataset: AnomalibDataset | None = None,
+        dataset: Dataset | None = None,
         versioned_dir: bool = False,
     ) -> None:
         """Setup the workspace for the model.
@@ -344,7 +345,7 @@ class Engine:
             if dataloader is not None and isinstance(dataloader, AnomalibDataModule):
                 for attribute in ("train_data", "val_data", "test_data"):
                     if hasattr(dataloader, attribute):
-                        data: AnomalibDataset = getattr(dataloader, attribute)
+                        data: Dataset = getattr(dataloader, attribute)
                         if data.task != self.task:
                             logger.info(
                                 f"Overriding task from {data.task} with {self.task} for {dataloader.__class__}",
@@ -692,7 +693,7 @@ class Engine:
         model: AnomalyModule | None = None,
         dataloaders: EVAL_DATALOADERS | None = None,
         datamodule: AnomalibDataModule | None = None,
-        dataset: Dataset | PredictDataset | None = None,
+        dataset: TorchDataset | PredictDataset | None = None,
         return_predictions: bool | None = None,
         ckpt_path: str | Path | None = None,
         data_path: str | Path | None = None,
@@ -714,7 +715,7 @@ class Engine:
                 the :class:`~lightning.pytorch.core.hooks.DataHooks.predict_dataloader` hook.
                 The datamodule can also be a dataset that will be wrapped in a torch Dataloader.
                 Defaults to None.
-            dataset (Dataset | PredictDataset | None, optional):
+            dataset (TorchDataset | PredictDataset | None, optional):
                 A :class:`~torch.utils.data.Dataset` or :class:`~anomalib.data.PredictDataset` that will be used
                 to create a dataloader. Defaults to None.
             return_predictions (bool | None, optional):

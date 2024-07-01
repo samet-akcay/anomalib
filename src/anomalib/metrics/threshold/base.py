@@ -8,8 +8,10 @@ from abc import ABC
 import torch
 from torchmetrics import Metric
 
+from anomalib.utils import create_class_alias_with_deprecation_warning
 
-class BaseThreshold(Metric, ABC):
+
+class Threshold(Metric, ABC):
     """Base class for thresholding metrics."""
 
     def __init__(self, **kwargs) -> None:
@@ -33,3 +35,6 @@ class BaseThreshold(Metric, ABC):
         """
         msg = "Subclass of BaseAnomalyScoreThreshold must implement the update method"
         raise NotImplementedError(msg)
+
+
+BaseThreshold = create_class_alias_with_deprecation_warning(Threshold, "BaseThreshold")

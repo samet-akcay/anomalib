@@ -18,6 +18,7 @@ from anomalib.data.base.datamodule import AnomalibDataModule
 from anomalib.data.base.dataset import Dataset
 from anomalib.data.utils import ValSplitMode, masks_to_boxes
 from anomalib.data.utils.video import ClipsIndexer
+from anomalib.utils import create_class_alias_with_deprecation_warning
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -35,7 +36,7 @@ class VideoTargetFrame(str, Enum):
     ALL = "all"
 
 
-class AnomalibVideoDataset(Dataset, ABC):
+class VideoDataset(Dataset, ABC):
     """Base video anomalib dataset class.
 
     Args:
@@ -89,7 +90,7 @@ class AnomalibVideoDataset(Dataset, ABC):
         Raises:
             ValueError: If the indexer class is not set.
         """
-        super(AnomalibVideoDataset, self.__class__).samples.fset(self, samples)  # type: ignore[attr-defined]
+        super(VideoDataset, self.__class__).samples.fset(self, samples)  # type: ignore[attr-defined]
         self._setup_clips()
 
     def _setup_clips(self) -> None:
@@ -211,3 +212,6 @@ class AnomalibVideoDataModule(AnomalibDataModule):
             raise ValueError(msg)
 
         self._create_val_split()
+
+
+AnomalibVideoDataset = create_class_alias_with_deprecation_warning(VideoDataset, "AnomalibVideoDataset")

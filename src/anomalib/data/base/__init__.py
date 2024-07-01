@@ -6,12 +6,12 @@
 from .datamodule import AnomalibDataModule
 from .dataset import Dataset
 from .depth import DepthDataset
-from .video import AnomalibVideoDataModule, AnomalibVideoDataset
+from .video import AnomalibVideoDataModule, VideoDataset
 
 __all__ = [
     "Dataset",
     "AnomalibDataModule",
-    "AnomalibVideoDataset",
+    "VideoDataset",
     "AnomalibVideoDataModule",
     "DepthDataset",
 ]

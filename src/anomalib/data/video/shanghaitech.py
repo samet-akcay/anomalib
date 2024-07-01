@@ -29,7 +29,7 @@ from pandas import DataFrame
 from torchvision.transforms.v2 import Transform
 
 from anomalib import TaskType
-from anomalib.data.base import AnomalibVideoDataModule, AnomalibVideoDataset
+from anomalib.data.base import AnomalibVideoDataModule, VideoDataset
 from anomalib.data.base.video import VideoTargetFrame
 from anomalib.data.utils import (
     DownloadInfo,
@@ -178,7 +178,7 @@ class ShanghaiTechTestClipsIndexer(ClipsIndexer):
         return video, torch.empty((1, 0)), {}, video_idx
 
 
-class ShanghaiTechDataset(AnomalibVideoDataset):
+class ShanghaiTechDataset(VideoDataset):
     """ShanghaiTech Dataset class.
 
     Args:

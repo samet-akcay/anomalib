@@ -30,7 +30,7 @@ from pandas import DataFrame
 from torchvision.transforms.v2 import Transform
 
 from anomalib import TaskType
-from anomalib.data.base import AnomalibVideoDataModule, AnomalibVideoDataset
+from anomalib.data.base import AnomalibVideoDataModule, VideoDataset
 from anomalib.data.base.video import VideoTargetFrame
 from anomalib.data.utils import (
     DownloadInfo,
@@ -136,7 +136,7 @@ class AvenueClipsIndexer(ClipsIndexer):
         return masks
 
 
-class AvenueDataset(AnomalibVideoDataset):
+class AvenueDataset(VideoDataset):
     """Avenue Dataset class.
 
     Args:

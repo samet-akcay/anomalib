@@ -6,14 +6,13 @@ This script creates a custom dataset from a folder.
 # Copyright (C) 2022 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-
 from pathlib import Path
 
 from pandas import DataFrame, isna
 from torchvision.transforms.v2 import Transform
 
 from anomalib import TaskType
-from anomalib.data.base import AnomalibDataModule, AnomalibDepthDataset
+from anomalib.data.base import AnomalibDataModule, DepthDataset
 from anomalib.data.errors import MisMatchError
 from anomalib.data.utils import (
     DirType,
@@ -192,7 +191,7 @@ def make_folder3d_dataset(  # noqa: C901
     return samples
 
 
-class Folder3DDataset(AnomalibDepthDataset):
+class Folder3DDataset(DepthDataset):
     """Folder dataset.
 
     Args:

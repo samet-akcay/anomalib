@@ -14,9 +14,10 @@ from torchvision.tv_tensors import Mask
 from anomalib import TaskType
 from anomalib.data.base.dataset import Dataset
 from anomalib.data.utils import LabelName, masks_to_boxes, read_depth_image
+from anomalib.utils import create_class_alias_with_deprecation_warning
 
 
-class AnomalibDepthDataset(Dataset, ABC):
+class DepthDataset(Dataset, ABC):
     """Base depth anomalib dataset class.
 
     Args:
@@ -74,3 +75,7 @@ class AnomalibDepthDataset(Dataset, ABC):
             raise ValueError(msg)
 
         return item
+
+
+# NOTE: This is for backward-compatibility and will be removed in future versions.
+AnomalibDepthDataset = create_class_alias_with_deprecation_warning(DepthDataset, "AnomalibDepthDataset")

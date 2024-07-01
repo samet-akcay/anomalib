@@ -19,7 +19,6 @@ Reference:
 # Copyright (C) 2022 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-
 import logging
 from collections.abc import Sequence
 from pathlib import Path
@@ -28,7 +27,7 @@ from pandas import DataFrame
 from torchvision.transforms.v2 import Transform
 
 from anomalib import TaskType
-from anomalib.data.base import AnomalibDataModule, AnomalibDepthDataset
+from anomalib.data.base import AnomalibDataModule, DepthDataset
 from anomalib.data.errors import MisMatchError
 from anomalib.data.utils import (
     DownloadInfo,
@@ -175,7 +174,7 @@ def make_mvtec_3d_dataset(
     return samples
 
 
-class MVTec3DDataset(AnomalibDepthDataset):
+class MVTec3DDataset(DepthDataset):
     """MVTec 3D dataset class.
 
     Args:

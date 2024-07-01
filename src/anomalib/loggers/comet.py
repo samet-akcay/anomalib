@@ -3,20 +3,21 @@
 # Copyright (C) 2022-2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-
 import numpy as np
 from matplotlib.figure import Figure
 
 try:
-    from lightning.pytorch.loggers.comet import CometLogger
+    from lightning.pytorch.loggers.comet import CometLogger as LightningCometLogger
 except ModuleNotFoundError:
     print("To use comet logger install it using `pip install comet-ml`")
 from lightning.pytorch.utilities import rank_zero_only
 
-from .base import ImageLoggerBase
+from anomalib.utils import create_class_alias_with_deprecation_warning
+
+from .base import ImageLogger
 
 
-class AnomalibCometLogger(ImageLoggerBase, CometLogger):
+class CometLogger(ImageLogger, LightningCometLogger):
     """Logger for comet.
 
     Adds interface for ``add_image`` in the logger rather than calling the
@@ -78,10 +79,10 @@ class AnomalibCometLogger(ImageLoggerBase, CometLogger):
             If neither ``api_key`` nor ``save_dir`` are passed as arguments.
 
     Example:
-        >>> from anomalib.loggers import AnomalibCometLogger
+        >>> from anomalib.loggers import CometLogger
         >>> from anomalib.engine import Engine
         ...
-        >>> comet_logger = AnomalibCometLogger()
+        >>> comet_logger = CometLogger()
         >>> engine =  Engine(logger=comet_logger)
 
     See Also:
@@ -134,3 +135,7 @@ class AnomalibCometLogger(ImageLoggerBase, CometLogger):
             self.experiment.log_figure(figure_name=name, figure=image, step=global_step)
         else:
             self.experiment.log_image(name=name, image_data=image, step=global_step)
+
+
+# NOTE: This is for backward-compatibility and will be removed in future versions.
+AnomalibCometLogger = create_class_alias_with_deprecation_warning(CometLogger, "AnomalibCometLogger")

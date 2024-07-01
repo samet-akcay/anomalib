@@ -14,8 +14,8 @@ from lightning.pytorch import Callback, Trainer
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 
 from anomalib.data.utils.image import save_image, show_image
-from anomalib.loggers import AnomalibWandbLogger
-from anomalib.loggers.base import ImageLoggerBase
+from anomalib.loggers import WandbLogger
+from anomalib.loggers.base import ImageLogger
 from anomalib.models import AnomalyModule
 from anomalib.utils.visualization import (
     BaseVisualizer,
@@ -129,7 +129,7 @@ class _VisualizationCallback(Callback):
                         self._add_to_logger(result, pl_module, trainer)
 
         for logger in trainer.loggers:
-            if isinstance(logger, AnomalibWandbLogger):
+            if isinstance(logger, WandbLogger):
                 logger.save()
 
     def on_predict_batch_end(
@@ -172,8 +172,8 @@ class _VisualizationCallback(Callback):
         image = result.image
         for log_to in available_loggers:
             # check if logger object is same as the requested object
-            if isinstance(available_loggers[log_to], ImageLoggerBase):
-                logger: ImageLoggerBase = cast(ImageLoggerBase, available_loggers[log_to])  # placate mypy
+            if isinstance(available_loggers[log_to], ImageLogger):
+                logger: ImageLogger = cast(ImageLogger, available_loggers[log_to])  # placate mypy
                 _name = filename.parent.name + "_" + filename.name if isinstance(filename, Path) else filename
                 logger.add_image(
                     image=image,

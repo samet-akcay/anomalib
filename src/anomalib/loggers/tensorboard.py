@@ -3,22 +3,23 @@
 # Copyright (C) 2022-2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-
 from pathlib import Path
 
 import numpy as np
 from matplotlib.figure import Figure
 
 try:
-    from lightning.pytorch.loggers.tensorboard import TensorBoardLogger
+    from lightning.pytorch.loggers.tensorboard import TensorBoardLogger as LightningTensorBoardLogger
 except ModuleNotFoundError:
     print("To use tensorboard logger install it using `pip install tensorboard`")
 from lightning.pytorch.utilities import rank_zero_only
 
-from .base import ImageLoggerBase
+from anomalib.utils import create_class_alias_with_deprecation_warning
+
+from .base import ImageLogger
 
 
-class AnomalibTensorBoardLogger(ImageLoggerBase, TensorBoardLogger):
+class TensorBoardLogger(ImageLogger, LightningTensorBoardLogger):
     """Logger for tensorboard.
 
     Adds interface for `add_image` in the logger rather than calling the experiment object.
@@ -32,9 +33,9 @@ class AnomalibTensorBoardLogger(ImageLoggerBase, TensorBoardLogger):
 
     Example:
         >>> from anomalib.engine import Engine
-        >>> from anomalib.loggers import AnomalibTensorBoardLogger
+        >>> from anomalib.loggers import TensorBoardLogger
         ...
-        >>> logger = AnomalibTensorBoardLogger("tb_logs", name="my_model")
+        >>> logger = TensorBoardLogger("tb_logs", name="my_model")
         >>> engine =  Engine(logger=logger)
 
     Args:
@@ -103,3 +104,7 @@ class AnomalibTensorBoardLogger(ImageLoggerBase, TensorBoardLogger):
             self.experiment.add_figure(figure=image, tag=name, close=False, **kwargs)
         else:
             self.experiment.add_image(img_tensor=image, tag=name, dataformats="HWC", **kwargs)
+
+
+# NOTE: This is for backward-compatibility and will be removed in future versions.
+AnomalibTensorBoardLogger = create_class_alias_with_deprecation_warning(TensorBoardLogger, "AnomalibTensorBoardLogger")

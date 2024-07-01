@@ -7,13 +7,14 @@ from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 from lightning.fabric.utilities.types import _PATH
-from lightning.pytorch.loggers.wandb import WandbLogger
+from lightning.pytorch.loggers.wandb import WandbLogger as LightningWandbLogger
 from lightning.pytorch.utilities import rank_zero_only
 from matplotlib.figure import Figure
 
 from anomalib.utils.exceptions import try_import
+from anomalib.utils.warning import create_class_alias_with_deprecation_warning
 
-from .base import ImageLoggerBase
+from .base import ImageLogger
 
 if try_import("wandb"):
     import wandb
@@ -23,7 +24,7 @@ if TYPE_CHECKING:
     from wandb.sdk.wandb_run import Run
 
 
-class AnomalibWandbLogger(ImageLoggerBase, WandbLogger):
+class WandbLogger(ImageLogger, LightningWandbLogger):
     """Logger for wandb.
 
     Adds interface for `add_image` in the logger rather than calling the experiment object.
@@ -71,10 +72,10 @@ class AnomalibWandbLogger(ImageLoggerBase, WandbLogger):
             If both ``log_model`` and ``offline``is set to ``True``.
 
     Example:
-        >>> from anomalib.loggers import AnomalibWandbLogger
+        >>> from anomalib.loggers import WandbLogger
         >>> from anomalib.engine import Engine
         ...
-        >>> wandb_logger = AnomalibWandbLogger()
+        >>> wandb_logger = WandbLogger()
         >>> engine =  Engine(logger=wandb_logger)
 
     .. note::
@@ -148,3 +149,7 @@ class AnomalibWandbLogger(ImageLoggerBase, WandbLogger):
             wandb.log({"Predictions": self.image_list})
             self.image_list = []
             self.image_list = []
+
+
+# NOTE: This is for backward-compatibility and will be removed in future versions.
+AnomalibWandbLogger = create_class_alias_with_deprecation_warning(WandbLogger, "AnomalibWandbLogger")

@@ -3,28 +3,24 @@
 # Copyright (C) 2022-2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-
 import logging
 
 from rich.logging import RichHandler
 
-__all__ = [
-    "configure_logger",
-    "get_experiment_logger",
-]
+__all__ = ["configure_logger"]
 
 try:
-    from .comet import AnomalibCometLogger  # noqa: F401
-    from .mlflow import AnomalibMLFlowLogger  # noqa: F401
-    from .tensorboard import AnomalibTensorBoardLogger  # noqa: F401
-    from .wandb import AnomalibWandbLogger  # noqa: F401
+    from .comet import CometLogger  # noqa: F401
+    from .mlflow import MLFlowLogger  # noqa: F401
+    from .tensorboard import TensorBoardLogger  # noqa: F401
+    from .wandb import WandbLogger  # noqa: F401
 
     __all__.extend(
         [
-            "AnomalibCometLogger",
-            "AnomalibTensorBoardLogger",
-            "AnomalibWandbLogger",
-            "AnomalibMLFlowLogger",
+            "CometLogger",
+            "TensorBoardLogger",
+            "WandbLogger",
+            "MLFlowLogger",
         ],
     )
 except ImportError:

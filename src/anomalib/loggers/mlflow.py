@@ -1,16 +1,21 @@
 """MLFlow logger with add image interface."""
 
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 from typing import Literal
 
 import numpy as np
-from lightning.pytorch.loggers.mlflow import MLFlowLogger
+from lightning.pytorch.loggers.mlflow import MLFlowLogger as LightningMLFlowLogger
 from lightning.pytorch.utilities import rank_zero_only
 from matplotlib.figure import Figure
 
-from .base import ImageLoggerBase
+from anomalib.utils import create_class_alias_with_deprecation_warning
+
+from .base import ImageLogger
 
 
-class AnomalibMLFlowLogger(ImageLoggerBase, MLFlowLogger):
+class MLFlowLogger(ImageLogger, LightningMLFlowLogger):
     """Logger for MLFlow.
 
     Adds interface for ``add_image`` in the logger rather than calling the
@@ -51,10 +56,10 @@ class AnomalibMLFlowLogger(ImageLoggerBase, MLFlowLogger):
             `MLFlowExperiment` can be passed as keyword arguments in this logger.
 
     Example:
-        >>> from anomalib.loggers import AnomalibMLFlowLogger
+        >>> from anomalib.loggers import MLFlowLogger
         >>> from anomalib.engine import Engine
         ...
-        >>> mlflow_logger = AnomalibMLFlowLogger()
+        >>> mlflow_logger = MLFlowLogger()
         >>> engine = Engine(logger=mlflow_logger)
 
     See Also:
@@ -97,3 +102,7 @@ class AnomalibMLFlowLogger(ImageLoggerBase, MLFlowLogger):
             self.experiment.log_figure(run_id=self.run_id, figure=image, artifact_file=name, **kwargs)
         else:
             self.experiment.log_image(run_id=self.run_id, image=image, artifact_file=name)
+
+
+# NOTE: This is for backward-compatibility and will be removed in future versions.
+AnomalibMLFlowLogger = create_class_alias_with_deprecation_warning(MLFlowLogger, "AnomalibMLFlowLogger")

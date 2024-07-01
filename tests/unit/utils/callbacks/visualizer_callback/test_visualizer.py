@@ -11,7 +11,7 @@ import pytest
 from anomalib import TaskType
 from anomalib.data import MVTec
 from anomalib.engine import Engine
-from anomalib.loggers import AnomalibTensorBoardLogger
+from anomalib.loggers import TensorBoardLogger
 
 from .dummy_lightning_model import DummyModule
 
@@ -20,7 +20,7 @@ from .dummy_lightning_model import DummyModule
 def test_add_images(task: TaskType, dataset_path: Path) -> None:
     """Tests if tensorboard logs are generated."""
     with tempfile.TemporaryDirectory() as dir_loc:
-        logger = AnomalibTensorBoardLogger(name="tensorboard_logs", save_dir=dir_loc)
+        logger = TensorBoardLogger(name="tensorboard_logs", save_dir=dir_loc)
         model = DummyModule(dataset_path)
         engine = Engine(
             logger=logger,

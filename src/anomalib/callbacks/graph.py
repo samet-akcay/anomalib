@@ -1,12 +1,12 @@
 """Log model graph to respective logger."""
 
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2022-2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
 import torch
 from lightning.pytorch import Callback, LightningModule, Trainer
 
-from anomalib.loggers import AnomalibCometLogger, AnomalibTensorBoardLogger, AnomalibWandbLogger
+from anomalib.loggers import CometLogger, TensorBoardLogger, WandbLogger
 
 
 class GraphLogger(Callback):
@@ -41,7 +41,7 @@ class GraphLogger(Callback):
             pl_module: LightningModule object which is logged.
         """
         for logger in trainer.loggers:
-            if isinstance(logger, AnomalibWandbLogger):
+            if isinstance(logger, WandbLogger):
                 # NOTE: log graph gets populated only after one backward pass. This won't work for models which do not
                 # require training such as Padim
                 logger.watch(pl_module, log_graph=True, log="all")
@@ -55,7 +55,7 @@ class GraphLogger(Callback):
             pl_module: LightningModule object which is logged.
         """
         for logger in trainer.loggers:
-            if isinstance(logger, AnomalibCometLogger | AnomalibTensorBoardLogger):
+            if isinstance(logger, CometLogger | TensorBoardLogger):
                 logger.log_graph(pl_module, input_array=torch.ones((1, 3, 256, 256)))
-            elif isinstance(logger, AnomalibWandbLogger):
+            elif isinstance(logger, WandbLogger):
                 logger.experiment.unwatch(pl_module)

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+import warnings
 from collections.abc import Callable, Sequence
 from functools import partial
 from pathlib import Path
@@ -38,7 +39,7 @@ except ImportError:
     _LIGHTNING_AVAILABLE = False
 
 
-class AnomalibCLI:
+class CLI:
     """Implementation of a fully configurable CLI tool for anomalib.
 
     The advantage of this tool is its flexibility to configure the pipeline
@@ -480,10 +481,20 @@ class AnomalibCLI:
         self.model.configure_optimizers = MethodType(fn, self.model)
 
 
+class AnomalibCLI(CLI):
+    """AnomalibCLI has been deprecated, and only used for backward compatibility."""
+
+    def __init__(self, *args, **kwargs) -> None:
+        warnings.warn(
+            f"{self.__class__.__name__} is deprecated. Use {CLI.__name__} instead.", DeprecationWarning, stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
+
+
 def main() -> None:
     """Trainer via Anomalib CLI."""
     configure_logger()
-    AnomalibCLI()
+    CLI()
 
 
 if __name__ == "__main__":

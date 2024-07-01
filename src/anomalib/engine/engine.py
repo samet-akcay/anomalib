@@ -1001,7 +1001,7 @@ class Engine:
                 >>> engine, model, datamodule = Engine.from_config(config_path=config_path, **override_kwargs)
                 >>> engine.fit(datamodule=datamodule, model=model)
         """
-        from anomalib.cli.cli import AnomalibCLI
+        from anomalib.cli import CLI
 
         if not Path(config_path).exists():
             msg = f"Configuration file not found: {config_path}"
@@ -1014,8 +1014,8 @@ class Engine:
         ]
         for key, value in kwargs.items():
             args.extend([f"--{key}", str(value)])
-        anomalib_cli = AnomalibCLI(
+        cli = CLI(
             args=args,
             run=False,
         )
-        return anomalib_cli.engine, anomalib_cli.model, anomalib_cli.datamodule
+        return cli.engine, cli.model, cli.datamodule

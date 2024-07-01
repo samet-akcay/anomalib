@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-import warnings
 from collections.abc import Callable, Sequence
 from functools import partial
 from pathlib import Path
@@ -20,6 +19,7 @@ from anomalib.cli.pipelines import PIPELINE_REGISTRY, pipeline_subcommands, run_
 from anomalib.cli.utils.help_formatter import CustomHelpFormatter, get_short_docstring
 from anomalib.cli.utils.openvino import add_openvino_export_arguments
 from anomalib.loggers import configure_logger
+from anomalib.utils import create_class_alias_with_deprecation_warning
 
 traceback.install()
 logger = logging.getLogger("anomalib.cli")
@@ -481,16 +481,8 @@ class CLI:
         self.model.configure_optimizers = MethodType(fn, self.model)
 
 
-class AnomalibCLI(CLI):
-    """AnomalibCLI has been deprecated, and is only used for backward compatibility."""
-
-    def __init__(self, *args, **kwargs) -> None:
-        warnings.warn(
-            f"{self.__class__.__name__} is deprecated. Use {CLI.__name__} instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        super().__init__(*args, **kwargs)
+# NOTE: This is for backward-compatibility and will be removed in future versions.
+AnomalibCLI = create_class_alias_with_deprecation_warning(CLI, "AnomalibCLI")
 
 
 def main() -> None:

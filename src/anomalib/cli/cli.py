@@ -486,7 +486,9 @@ class AnomalibCLI(CLI):
 
     def __init__(self, *args, **kwargs) -> None:
         warnings.warn(
-            f"{self.__class__.__name__} is deprecated. Use {CLI.__name__} instead.", DeprecationWarning, stacklevel=2
+            f"{self.__class__.__name__} is deprecated. Use {CLI.__name__} instead.",
+            DeprecationWarning,
+            stacklevel=2,
         )
         super().__init__(*args, **kwargs)
 

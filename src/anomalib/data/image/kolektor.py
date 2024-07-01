@@ -27,7 +27,7 @@ from sklearn.model_selection import train_test_split
 from torchvision.transforms.v2 import Transform
 
 from anomalib import TaskType
-from anomalib.data.base import AnomalibDataModule, Dataset
+from anomalib.data.base import DataModule, Dataset
 from anomalib.data.errors import MisMatchError
 from anomalib.data.utils import (
     DownloadInfo,
@@ -210,7 +210,7 @@ class KolektorDataset(Dataset):
         self.samples = make_kolektor_dataset(self.root, train_split_ratio=0.8, split=self.split)
 
 
-class Kolektor(AnomalibDataModule):
+class Kolektor(DataModule):
     """Kolektor Datamodule.
 
     Args:

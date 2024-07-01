@@ -3,7 +3,6 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-
 import json
 import logging
 from collections.abc import Callable, Iterable
@@ -18,7 +17,7 @@ from torchmetrics import Metric
 from torchvision.transforms.v2 import Transform
 
 from anomalib import TaskType
-from anomalib.data import AnomalibDataModule
+from anomalib.data import DataModule
 from anomalib.deploy.export import CompressionType, ExportType, InferenceModel
 from anomalib.metrics import create_metric_collection
 from anomalib.utils.exceptions import try_import
@@ -165,7 +164,7 @@ class ExportMixin:
         input_size: tuple[int, int] | None = None,
         transform: Transform | None = None,
         compression_type: CompressionType | None = None,
-        datamodule: AnomalibDataModule | None = None,
+        datamodule: DataModule | None = None,
         metric: Metric | str | None = None,
         ov_args: dict[str, Any] | None = None,
         task: TaskType | None = None,
@@ -271,7 +270,7 @@ class ExportMixin:
         self,
         model: "CompiledModel",
         compression_type: CompressionType | None = None,
-        datamodule: AnomalibDataModule | None = None,
+        datamodule: DataModule | None = None,
         metric: Metric | str | None = None,
         task: TaskType | None = None,
     ) -> "CompiledModel":
@@ -314,7 +313,7 @@ class ExportMixin:
     def _post_training_quantization_ov(
         self,
         model: "CompiledModel",
-        datamodule: AnomalibDataModule | None = None,
+        datamodule: DataModule | None = None,
     ) -> "CompiledModel":
         """Post-Training Quantization model with NNCF.
 
@@ -349,7 +348,7 @@ class ExportMixin:
     def _accuracy_control_quantization_ov(
         self,
         model: "CompiledModel",
-        datamodule: AnomalibDataModule | None = None,
+        datamodule: DataModule | None = None,
         metric: Metric | str | None = None,
         task: TaskType | None = None,
     ) -> "CompiledModel":

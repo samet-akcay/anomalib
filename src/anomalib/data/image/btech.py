@@ -20,7 +20,7 @@ from torchvision.transforms.v2 import Transform
 from tqdm import tqdm
 
 from anomalib import TaskType
-from anomalib.data.base import AnomalibDataModule, Dataset
+from anomalib.data.base import DataModule, Dataset
 from anomalib.data.utils import (
     DownloadInfo,
     LabelName,
@@ -178,7 +178,7 @@ class BTechDataset(Dataset):
         self.samples = make_btech_dataset(path=self.root_category, split=self.split)
 
 
-class BTech(AnomalibDataModule):
+class BTech(DataModule):
     """BTech Lightning Data Module.
 
     Args:

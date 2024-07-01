@@ -13,7 +13,7 @@ from pandas import DataFrame
 from torchvision.transforms.v2 import Transform
 
 from anomalib import TaskType
-from anomalib.data.base import AnomalibDataModule, Dataset
+from anomalib.data.base import DataModule, Dataset
 from anomalib.data.errors import MisMatchError
 from anomalib.data.utils import (
     DirType,
@@ -277,7 +277,7 @@ class FolderDataset(Dataset):
         return self._name
 
 
-class Folder(AnomalibDataModule):
+class Folder(DataModule):
     """Folder DataModule.
 
     Args:

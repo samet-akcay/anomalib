@@ -14,7 +14,7 @@ from pandas import DataFrame
 from torchvision.transforms.v2 import Transform
 
 from anomalib import TaskType
-from anomalib.data.base import AnomalibVideoDataModule, VideoDataset
+from anomalib.data.base import VideoDataModule, VideoDataset
 from anomalib.data.base.video import VideoTargetFrame
 from anomalib.data.utils import (
     DownloadInfo,
@@ -186,7 +186,7 @@ class UCSDpedDataset(VideoDataset):
         self.samples = make_ucsd_dataset(self.root_category, self.split)
 
 
-class UCSDped(AnomalibVideoDataModule):
+class UCSDped(VideoDataModule):
     """UCSDped DataModule class.
 
     Args:

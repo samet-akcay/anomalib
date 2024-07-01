@@ -27,7 +27,7 @@ from pandas import DataFrame
 from torchvision.transforms.v2 import Transform
 
 from anomalib import TaskType
-from anomalib.data.base import AnomalibDataModule, DepthDataset
+from anomalib.data.base import DataModule, DepthDataset
 from anomalib.data.errors import MisMatchError
 from anomalib.data.utils import (
     DownloadInfo,
@@ -204,7 +204,7 @@ class MVTec3DDataset(DepthDataset):
         self.samples = make_mvtec_3d_dataset(self.root_category, split=self.split, extensions=IMG_EXTENSIONS)
 
 
-class MVTec3D(AnomalibDataModule):
+class MVTec3D(DataModule):
     """MVTec Datamodule.
 
     Args:

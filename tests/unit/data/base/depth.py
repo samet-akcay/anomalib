@@ -5,14 +5,14 @@
 
 import pytest
 
-from anomalib.data import AnomalibDataModule
+from anomalib.data import DataModule
 
 from .base import _TestAnomalibDataModule
 
 
 class _TestAnomalibDepthDatamodule(_TestAnomalibDataModule):
     @pytest.mark.parametrize("subset", ["train", "val", "test"])
-    def test_get_item_returns_correct_keys_and_shapes(self, datamodule: AnomalibDataModule, subset: str) -> None:
+    def test_get_item_returns_correct_keys_and_shapes(self, datamodule: DataModule, subset: str) -> None:
         """Test that the datamodule __getitem__ returns the correct keys and shapes."""
         # Get the dataloader.
         dataloader = getattr(datamodule, f"{subset}_dataloader")()

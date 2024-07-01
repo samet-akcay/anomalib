@@ -3,15 +3,15 @@
 # Copyright (C) 2022 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-from .datamodule import AnomalibDataModule
+from .datamodule import DataModule
 from .dataset import Dataset
 from .depth import DepthDataset
-from .video import AnomalibVideoDataModule, VideoDataset
+from .video import VideoDataModule, VideoDataset
 
 __all__ = [
     "Dataset",
-    "AnomalibDataModule",
+    "DataModule",
     "VideoDataset",
-    "AnomalibVideoDataModule",
+    "VideoDataModule",
     "DepthDataset",
 ]

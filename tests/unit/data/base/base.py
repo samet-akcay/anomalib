@@ -6,7 +6,7 @@
 import pytest
 from torch.utils.data import DataLoader
 
-from anomalib.data import AnomalibDataModule
+from anomalib.data import DataModule
 
 
 class _TestAnomalibDataModule:
@@ -18,7 +18,7 @@ class _TestAnomalibDataModule:
     """
 
     @pytest.mark.parametrize("subset", ["train", "val", "test"])
-    def test_datamodule_has_dataloader_attributes(self, datamodule: AnomalibDataModule, subset: str) -> None:
+    def test_datamodule_has_dataloader_attributes(self, datamodule: DataModule, subset: str) -> None:
         """Test that the datamodule has the correct dataloader attributes."""
         dataloader = f"{subset}_dataloader"
         assert hasattr(datamodule, dataloader)
@@ -27,15 +27,15 @@ class _TestAnomalibDataModule:
     def test_datamodule_from_config(self, fxt_data_config_path: str) -> None:
         # 1. Wrong file path:
         with pytest.raises(FileNotFoundError):
-            AnomalibDataModule.from_config(config_path="wrong_configs.yaml")
+            DataModule.from_config(config_path="wrong_configs.yaml")
 
         # 2. Correct file path:
-        datamodule = AnomalibDataModule.from_config(config_path=fxt_data_config_path)
+        datamodule = DataModule.from_config(config_path=fxt_data_config_path)
         assert datamodule is not None
-        assert isinstance(datamodule, AnomalibDataModule)
+        assert isinstance(datamodule, DataModule)
 
         # 3. Override batch_size & num_workers
         override_kwargs = {"data.train_batch_size": 1, "data.num_workers": 1}
-        datamodule = AnomalibDataModule.from_config(config_path=fxt_data_config_path, **override_kwargs)
+        datamodule = DataModule.from_config(config_path=fxt_data_config_path, **override_kwargs)
         assert datamodule.train_batch_size == 1
         assert datamodule.num_workers == 1

@@ -12,7 +12,7 @@ from omegaconf import DictConfig, ListConfig
 
 from anomalib.utils.config import to_tuple
 
-from .base import AnomalibDataModule, Dataset
+from .base import DataModule, Dataset
 from .depth import DepthDataFormat, Folder3D, MVTec3D
 from .image import BTech, Folder, ImageDataFormat, Kolektor, MVTec, Visa
 from .predict import PredictDataset
@@ -32,7 +32,7 @@ class UnknownDatamoduleError(ModuleNotFoundError):
     ...
 
 
-def get_datamodule(config: DictConfig | ListConfig | dict) -> AnomalibDataModule:
+def get_datamodule(config: DictConfig | ListConfig | dict) -> DataModule:
     """Get Anomaly Datamodule.
 
     Args:
@@ -65,7 +65,7 @@ def get_datamodule(config: DictConfig | ListConfig | dict) -> AnomalibDataModule
 
 __all__ = [
     "Dataset",
-    "AnomalibDataModule",
+    "DataModule",
     "DepthDataFormat",
     "ImageDataFormat",
     "VideoDataFormat",

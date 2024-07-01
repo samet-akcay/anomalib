@@ -29,7 +29,7 @@ try:
     from lightning.pytorch import Trainer
     from torch.utils.data import DataLoader, Dataset
 
-    from anomalib.data import AnomalibDataModule
+    from anomalib.data import DataModule
     from anomalib.engine import Engine
     from anomalib.metrics.threshold import BaseThreshold
     from anomalib.models import AnomalyModule
@@ -177,7 +177,7 @@ class CLI:
             fail_untyped=False,
             required=True,
         )
-        parser.add_subclass_arguments(AnomalibDataModule, "data")
+        parser.add_subclass_arguments(DataModule, "data")
         self.add_arguments_to_parser(parser)
         skip: set[str | int] = set(self.subcommands()[subcommand])
         added = parser.add_method_arguments(
@@ -197,7 +197,7 @@ class CLI:
             fail_untyped=False,
             required=True,
         )
-        parser.add_subclass_arguments(AnomalibDataModule, "data")
+        parser.add_subclass_arguments(DataModule, "data")
         self.add_arguments_to_parser(parser)
         added = parser.add_method_arguments(
             Engine,
@@ -218,7 +218,7 @@ class CLI:
         )
         parser.add_argument(
             "--data",
-            type=Dataset | AnomalibDataModule | DataLoader | str | Path,
+            type=Dataset | DataModule | DataLoader | str | Path,
             required=True,
         )
         added = parser.add_method_arguments(
@@ -241,7 +241,7 @@ class CLI:
         )
         parser.add_argument(
             "--data",
-            type=AnomalibDataModule,
+            type=DataModule,
             required=False,
         )
         added = parser.add_method_arguments(
@@ -451,7 +451,7 @@ class CLI:
         }
         fn_kwargs["model"] = self.model
         if self.datamodule is not None:
-            if isinstance(self.datamodule, AnomalibDataModule):
+            if isinstance(self.datamodule, DataModule):
                 fn_kwargs["datamodule"] = self.datamodule
             elif isinstance(self.datamodule, DataLoader):
                 fn_kwargs["dataloaders"] = self.datamodule

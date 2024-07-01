@@ -30,7 +30,7 @@ from pandas import DataFrame
 from torchvision.transforms.v2 import Transform
 
 from anomalib import TaskType
-from anomalib.data.base import AnomalibVideoDataModule, VideoDataset
+from anomalib.data.base import VideoDataModule, VideoDataset
 from anomalib.data.base.video import VideoTargetFrame
 from anomalib.data.utils import (
     DownloadInfo,
@@ -237,7 +237,7 @@ class AvenueDataset(VideoDataset):
         self.samples = make_avenue_dataset(self.root, self.gt_dir, self.split)
 
 
-class Avenue(AnomalibVideoDataModule):
+class Avenue(VideoDataModule):
     """Avenue DataModule class.
 
     Args:

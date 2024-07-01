@@ -27,7 +27,7 @@ from anomalib.callbacks.post_processor import _PostProcessorCallback
 from anomalib.callbacks.thresholding import _ThresholdCallback
 from anomalib.callbacks.timer import TimerCallback
 from anomalib.callbacks.visualizer import _VisualizationCallback
-from anomalib.data import AnomalibDataModule, Dataset, PredictDataset
+from anomalib.data import DataModule, Dataset, PredictDataset
 from anomalib.deploy import CompressionType, ExportType
 from anomalib.models import AnomalyModule
 from anomalib.utils.normalization import NormalizationMethod
@@ -255,7 +255,7 @@ class Engine:
         train_dataloaders: TRAIN_DATALOADERS | None = None,
         val_dataloaders: EVAL_DATALOADERS | None = None,
         test_dataloaders: EVAL_DATALOADERS | None = None,
-        datamodule: AnomalibDataModule | None = None,
+        datamodule: DataModule | None = None,
         dataset: Dataset | None = None,
         versioned_dir: bool = False,
     ) -> None:
@@ -334,7 +334,7 @@ class Engine:
 
     def _setup_dataset_task(
         self,
-        *dataloaders: EVAL_DATALOADERS | TRAIN_DATALOADERS | AnomalibDataModule | None,
+        *dataloaders: EVAL_DATALOADERS | TRAIN_DATALOADERS | DataModule | None,
     ) -> None:
         """Override the dataloader task with the task passed to the Engine.
 
@@ -342,7 +342,7 @@ class Engine:
             dataloaders (TRAIN_DATALOADERS | EVAL_DATALOADERS): Dataloaders to be used for training or evaluation.
         """
         for dataloader in dataloaders:
-            if dataloader is not None and isinstance(dataloader, AnomalibDataModule):
+            if dataloader is not None and isinstance(dataloader, DataModule):
                 for attribute in ("train_data", "val_data", "test_data"):
                     if hasattr(dataloader, attribute):
                         data: Dataset = getattr(dataloader, attribute)
@@ -355,7 +355,7 @@ class Engine:
     @staticmethod
     def _setup_transform(
         model: AnomalyModule,
-        datamodule: AnomalibDataModule | None = None,
+        datamodule: DataModule | None = None,
         dataloaders: EVAL_DATALOADERS | TRAIN_DATALOADERS | None = None,
         ckpt_path: Path | str | None = None,
     ) -> None:
@@ -450,7 +450,7 @@ class Engine:
         self,
         model: AnomalyModule,
         dataloaders: EVAL_DATALOADERS | None,
-        datamodule: AnomalibDataModule | None,
+        datamodule: DataModule | None,
         ckpt_path: str | Path | None,
     ) -> bool:
         """Check if we need to run validation to collect normalization statistics and thresholds.
@@ -491,7 +491,7 @@ class Engine:
         model: AnomalyModule,
         train_dataloaders: TRAIN_DATALOADERS | None = None,
         val_dataloaders: EVAL_DATALOADERS | None = None,
-        datamodule: AnomalibDataModule | None = None,
+        datamodule: DataModule | None = None,
         ckpt_path: str | Path | None = None,
     ) -> None:
         """Fit the model using the trainer.
@@ -547,7 +547,7 @@ class Engine:
         dataloaders: EVAL_DATALOADERS | None = None,
         ckpt_path: str | Path | None = None,
         verbose: bool = True,
-        datamodule: AnomalibDataModule | None = None,
+        datamodule: DataModule | None = None,
     ) -> _EVALUATE_OUTPUT | None:
         """Validate the model using the trainer.
 
@@ -597,7 +597,7 @@ class Engine:
         dataloaders: EVAL_DATALOADERS | None = None,
         ckpt_path: str | Path | None = None,
         verbose: bool = True,
-        datamodule: AnomalibDataModule | None = None,
+        datamodule: DataModule | None = None,
     ) -> _EVALUATE_OUTPUT:
         """Test the model using the trainer.
 
@@ -692,7 +692,7 @@ class Engine:
         self,
         model: AnomalyModule | None = None,
         dataloaders: EVAL_DATALOADERS | None = None,
-        datamodule: AnomalibDataModule | None = None,
+        datamodule: DataModule | None = None,
         dataset: TorchDataset | PredictDataset | None = None,
         return_predictions: bool | None = None,
         ckpt_path: str | Path | None = None,
@@ -806,7 +806,7 @@ class Engine:
         train_dataloaders: TRAIN_DATALOADERS | None = None,
         val_dataloaders: EVAL_DATALOADERS | None = None,
         test_dataloaders: EVAL_DATALOADERS | None = None,
-        datamodule: AnomalibDataModule | None = None,
+        datamodule: DataModule | None = None,
         ckpt_path: str | Path | None = None,
     ) -> _EVALUATE_OUTPUT:
         """Fits the model and then calls test on it.
@@ -872,7 +872,7 @@ class Engine:
         input_size: tuple[int, int] | None = None,
         transform: Transform | None = None,
         compression_type: CompressionType | None = None,
-        datamodule: AnomalibDataModule | None = None,
+        datamodule: DataModule | None = None,
         metric: Metric | str | None = None,
         ov_args: dict[str, Any] | None = None,
         ckpt_path: str | Path | None = None,
@@ -977,7 +977,7 @@ class Engine:
         cls: type["Engine"],
         config_path: str | Path,
         **kwargs,
-    ) -> tuple["Engine", AnomalyModule, AnomalibDataModule]:
+    ) -> tuple["Engine", AnomalyModule, DataModule]:
         """Create an Engine instance from a configuration file.
 
         Args:

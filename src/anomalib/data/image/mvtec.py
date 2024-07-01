@@ -33,7 +33,7 @@ from pandas import DataFrame
 from torchvision.transforms.v2 import Transform
 
 from anomalib import TaskType
-from anomalib.data.base import AnomalibDataModule, Dataset
+from anomalib.data.base import DataModule, Dataset
 from anomalib.data.errors import MisMatchError
 from anomalib.data.utils import (
     DownloadInfo,
@@ -235,7 +235,7 @@ class MVTecDataset(Dataset):
         self.samples = make_mvtec_dataset(self.root_category, split=self.split, extensions=IMG_EXTENSIONS)
 
 
-class MVTec(AnomalibDataModule):
+class MVTec(DataModule):
     """MVTec Datamodule.
 
     Args:

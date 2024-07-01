@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from anomalib import TaskType
-from anomalib.data import AnomalibDataModule, MVTec
+from anomalib.data import DataModule, MVTec
 from anomalib.deploy import ExportType
 from anomalib.engine import Engine
 from anomalib.models import AnomalyModule, get_available_models, get_model
@@ -164,7 +164,7 @@ class TestAPI:
         model_name: str,
         dataset_path: Path,
         project_path: Path,
-    ) -> tuple[AnomalyModule, AnomalibDataModule, Engine]:
+    ) -> tuple[AnomalyModule, DataModule, Engine]:
         """Return model, dataset, and engine objects.
 
         Args:

@@ -14,7 +14,7 @@ from lightning import seed_everything
 from rich.console import Console
 from rich.table import Table
 
-from anomalib.data import AnomalibDataModule
+from anomalib.data import DataModule
 from anomalib.engine import Engine
 from anomalib.models import AnomalyModule
 from anomalib.pipelines.components import Job
@@ -35,7 +35,7 @@ class BenchmarkJob(Job):
 
     name = "benchmark"
 
-    def __init__(self, accelerator: str, model: AnomalyModule, datamodule: AnomalibDataModule, seed: int) -> None:
+    def __init__(self, accelerator: str, model: AnomalyModule, datamodule: DataModule, seed: int) -> None:
         super().__init__()
         self.accelerator = accelerator
         self.model = model

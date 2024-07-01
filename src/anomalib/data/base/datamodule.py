@@ -16,6 +16,7 @@ from torchvision.transforms.v2 import Resize, Transform
 
 from anomalib.data.utils import TestSplitMode, ValSplitMode, random_split, split_by_label
 from anomalib.data.utils.synthetic import SyntheticAnomalyDataset
+from anomalib.utils import create_class_alias_with_deprecation_warning
 
 if TYPE_CHECKING:
     from pandas import DataFrame
@@ -48,7 +49,7 @@ def collate_fn(batch: list) -> dict[str, Any]:
     return default_collate(batch)
 
 
-class AnomalibDataModule(LightningDataModule, ABC):
+class DataModule(LightningDataModule, ABC):
     """Base Anomalib data module.
 
     Args:
@@ -292,10 +293,10 @@ class AnomalibDataModule(LightningDataModule, ABC):
 
     @classmethod
     def from_config(
-        cls: type["AnomalibDataModule"],
+        cls: type["DataModule"],
         config_path: str | Path,
         **kwargs,
-    ) -> "AnomalibDataModule":
+    ) -> "DataModule":
         """Create a datamodule instance from the configuration.
 
         Args:
@@ -325,15 +326,19 @@ class AnomalibDataModule(LightningDataModule, ABC):
             raise FileNotFoundError(msg)
 
         data_parser = ArgumentParser()
-        data_parser.add_subclass_arguments(AnomalibDataModule, "data", required=False, fail_untyped=False)
+        data_parser.add_subclass_arguments(DataModule, "data", required=False, fail_untyped=False)
         args = ["--data", str(config_path)]
         for key, value in kwargs.items():
             args.extend([f"--{key}", str(value)])
         config = data_parser.parse_args(args=args)
         instantiated_classes = data_parser.instantiate_classes(config)
         datamodule = instantiated_classes.get("data")
-        if isinstance(datamodule, AnomalibDataModule):
+        if isinstance(datamodule, DataModule):
             return datamodule
 
         msg = f"Datamodule is not an instance of AnomalibDataModule: {datamodule}"
         raise ValueError(msg)
+
+
+# NOTE: This is for backward-compatibility and will be removed in future versions.
+AnomalibDataModule = create_class_alias_with_deprecation_warning(DataModule, "AnomalibDataModule")

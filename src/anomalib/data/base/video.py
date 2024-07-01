@@ -14,7 +14,7 @@ from torchvision.transforms.v2.functional import to_dtype_video
 from torchvision.tv_tensors import Mask
 
 from anomalib import TaskType
-from anomalib.data.base.datamodule import AnomalibDataModule
+from anomalib.data.base.datamodule import DataModule
 from anomalib.data.base.dataset import Dataset
 from anomalib.data.utils import ValSplitMode, masks_to_boxes
 from anomalib.data.utils.video import ClipsIndexer
@@ -183,7 +183,7 @@ class VideoDataset(Dataset, ABC):
         return item
 
 
-class AnomalibVideoDataModule(AnomalibDataModule):
+class VideoDataModule(DataModule):
     """Base class for video data modules."""
 
     def _create_test_split(self) -> None:
@@ -214,4 +214,6 @@ class AnomalibVideoDataModule(AnomalibDataModule):
         self._create_val_split()
 
 
+# NOTE: This is a temporary alias to avoid breaking changes in the codebase. This alias will be removed in a future
 AnomalibVideoDataset = create_class_alias_with_deprecation_warning(VideoDataset, "AnomalibVideoDataset")
+AnomalibVideoDataModule = create_class_alias_with_deprecation_warning(VideoDataModule, "AnomalibVideoDataModule")

@@ -30,7 +30,7 @@ import cv2
 from torchvision.transforms.v2 import Transform
 
 from anomalib import TaskType
-from anomalib.data.base import AnomalibDataModule, Dataset
+from anomalib.data.base import DataModule, Dataset
 from anomalib.data.utils import (
     DownloadInfo,
     Split,
@@ -141,7 +141,7 @@ class VisaDataset(Dataset):
         self.samples = make_mvtec_dataset(self.root_category, split=self.split, extensions=EXTENSIONS)
 
 
-class Visa(AnomalibDataModule):
+class Visa(DataModule):
     """VisA Datamodule.
 
     Args:

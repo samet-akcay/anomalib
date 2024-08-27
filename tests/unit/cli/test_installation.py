@@ -26,7 +26,7 @@ from anomalib.cli.utils.installation import (
 def requirements_file() -> Path:
     """Create a temporary requirements file with some example requirements."""
     requirements = ["numpy==1.19.5", "opencv-python-headless>=4.5.1.48"]
-    with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", delete=False) as f:
         f.write("\n".join(requirements))
         return Path(f.name)
 
@@ -72,7 +72,7 @@ def test_parse_requirements() -> None:
 
 def test_get_cuda_version_with_version_file(mocker: MockerFixture, tmp_path: Path) -> None:
     """Test that get_cuda_version returns the expected CUDA version when version file exists."""
-    tmp_path = tmp_path / "cuda"
+    tmp_path /= "cuda"
     tmp_path.mkdir()
     mocker.patch.dict(os.environ, {"CUDA_HOME": str(tmp_path)})
     version_file = tmp_path / "version.json"

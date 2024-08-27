@@ -50,7 +50,7 @@ def positional_encoding_2d(condition_vector: int, height: int, width: int) -> to
         raise ValueError(msg)
     pos_encoding = torch.zeros(condition_vector, height, width)
     # Each dimension use half of condition_vector
-    condition_vector = condition_vector // 2
+    condition_vector //= 2
     div_term = torch.exp(torch.arange(0.0, condition_vector, 2) * -(math.log(1e4) / condition_vector))
     pos_w = torch.arange(0.0, width).unsqueeze(1)
     pos_h = torch.arange(0.0, height).unsqueeze(1)

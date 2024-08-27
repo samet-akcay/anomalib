@@ -90,7 +90,7 @@ def test_binned_aupro(labels: torch.Tensor, preds: torch.Tensor, threshold_count
     assert torch.allclose(computed_not_binned_aupro, computed_binned_aupro, atol=tolerance)
 
     # test with prediction higher than 1
-    preds = preds * 2
+    preds *= 2
     computed_binned_aupro = binned_pro(preds, labels)
     computed_not_binned_aupro = aupro(preds, labels)
 

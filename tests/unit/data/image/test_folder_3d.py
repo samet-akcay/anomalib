@@ -15,8 +15,8 @@ from tests.unit.data.base import _TestAnomalibDepthDatamodule
 class TestFolder3D(_TestAnomalibDepthDatamodule):
     """Folder3D Datamodule Unit Tests."""
 
-    @pytest.fixture
-    def datamodule(self, dataset_path: Path, task_type: TaskType) -> Folder3D:
+    @staticmethod
+    def datamodule(dataset_path: Path, task_type: TaskType) -> Folder3D:
         """Create and return a Folder 3D datamodule."""
         _datamodule = Folder3D(
             name="dummy",
@@ -39,12 +39,13 @@ class TestFolder3D(_TestAnomalibDepthDatamodule):
 
         return _datamodule
 
-    @pytest.fixture
-    def fxt_data_config_path(self) -> str:
+    @staticmethod
+    def fxt_data_config_path() -> str:
         """Return the path to the test data config."""
         return "configs/data/folder_3d.yaml"
 
-    def test_datamodule_from_config(self, fxt_data_config_path: str) -> None:
+    @staticmethod
+    def test_datamodule_from_config(fxt_data_config_path: str) -> None:
         """Test method to create a datamodule from a configuration file.
 
         Args:

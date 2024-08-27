@@ -23,18 +23,18 @@ class TestGradioInferenceEntrypoint:
     Note: This does not launch the gradio server. It only checks if the right inferencer is called.
     """
 
-    @pytest.fixture
-    def get_functions(self) -> tuple[Callable, Callable]:
+    @staticmethod
+    def get_functions() -> tuple[Callable, Callable]:
         """Get functions from Gradio_inference.py."""
         if find_spec("gradio_inference") is not None:
-            from tools.inference.gradio_inference import get_inferencer, get_parser
+            from tools.inference.gradio_inference import get_inferencer, get_parser  # noqa: PLC0415
         else:
             msg = "Unable to import gradio_inference.py for testing"
             raise ImportError(msg)
         return get_parser, get_inferencer
 
+    @staticmethod
     def test_torch_inference(
-        self,
         get_functions: tuple[Callable, Callable],
         ckpt_path: Callable[[str], Path],
     ) -> None:
@@ -57,8 +57,8 @@ class TestGradioInferenceEntrypoint:
         )
         assert isinstance(inferencer(arguments.weights, arguments.metadata), TorchInferencer)
 
+    @staticmethod
     def test_openvino_inference(
-        self,
         get_functions: tuple[Callable, Callable],
         ckpt_path: Callable[[str], Path],
     ) -> None:

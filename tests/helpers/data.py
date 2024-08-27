@@ -46,8 +46,9 @@ class DummyImageGenerator:
 
     def __init__(self, image_shape: tuple[int, int] = (256, 256), rng: np.random.Generator | None = None) -> None:
         self.image_shape = image_shape
-        self.augmenter = Augmenter()
-        self.rng = rng if rng else np.random.default_rng()
+        self.num_channels = num_channels
+        self.min_size = min_size
+        self.image_generator = DummyImageGenerator(image_shape=image_shape, rng=self.rng)
 
     def generate_normal_image(self) -> tuple[np.ndarray, np.ndarray]:
         """Generate a normal image."""
@@ -104,7 +105,8 @@ class DummyImageGenerator:
 
         return image, mask
 
-    def save_image(self, filename: Path | str, image: np.ndarray, check_contrast: bool = False) -> None:
+    @staticmethod
+    def save_image(filename: Path | str, image: np.ndarray, check_contrast: bool = False) -> None:
         """Save image to filesystem.
 
         Args:
@@ -445,13 +447,13 @@ class DummyVideoDatasetGenerator(DummyDatasetGenerator):
 
     def __init__(
         self,
-        data_format: DataFormat,
+        data_format: DataFormat | str,
         root: Path | str | None = None,
-        num_frames: int = 32,
-        frame_shape: tuple[int, int] = (256, 256),
         num_train: int = 5,
         num_test: int = 5,
         seed: int | None = None,
+        num_frames: int = 32,
+        frame_shape: tuple[int, int] = (256, 256),
     ) -> None:
         super().__init__(
             data_format=data_format,

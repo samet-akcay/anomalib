@@ -84,7 +84,7 @@ def anomaly_map_to_color_map(anomaly_map: np.ndarray, normalize: bool = True) ->
     """
     if normalize:
         anomaly_map = (anomaly_map - anomaly_map.min()) / np.ptp(anomaly_map)
-    anomaly_map = anomaly_map * 255
+    anomaly_map *= 255
     anomaly_map = anomaly_map.astype(np.uint8)
 
     anomaly_map = cv2.applyColorMap(anomaly_map, cv2.COLORMAP_JET)

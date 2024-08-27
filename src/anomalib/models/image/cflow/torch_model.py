@@ -41,6 +41,7 @@ class CflowModel(nn.Module):
         self,
         backbone: str,
         layers: Sequence[str],
+        *,  # Enforce keyword-only arguments for the following parameters
         pre_trained: bool = True,
         fiber_batch_size: int = 64,
         decoder: str = "freia-cflow",

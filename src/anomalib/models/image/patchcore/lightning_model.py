@@ -57,7 +57,7 @@ class Patchcore(MemoryBankMixin, AnomalyModule):
         self.coreset_sampling_ratio = coreset_sampling_ratio
         self.embeddings: list[torch.Tensor] = []
 
-    def configure_optimizers(self) -> None:
+    def configure_optimizers(self) -> None:  # noqa: PLR6301
         """Configure optimizers.
 
         Returns:

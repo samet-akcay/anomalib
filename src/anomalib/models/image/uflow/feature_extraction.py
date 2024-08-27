@@ -132,7 +132,7 @@ class MCaitFeatureExtractor(nn.Module):
 
         # Scale 1 --> Extractor 1
         x1 = self.extractor1.patch_embed(img)
-        x1 = x1 + self.extractor1.pos_embed
+        x1 += self.extractor1.pos_embed
         x1 = self.extractor1.pos_drop(x1)
         for i in range(41):  # paper Table 6. Block Index = 40
             x1 = self.extractor1.blocks[i](x1)
@@ -140,7 +140,7 @@ class MCaitFeatureExtractor(nn.Module):
         # Scale 2 --> Extractor 2
         img_sub = F.interpolate(torch.Tensor(img), size=(224, 224), mode="bicubic", align_corners=True)
         x2 = self.extractor2.patch_embed(img_sub)
-        x2 = x2 + self.extractor2.pos_embed
+        x2 += self.extractor2.pos_embed
         x2 = self.extractor2.pos_drop(x2)
         for i in range(21):
             x2 = self.extractor2.blocks[i](x2)

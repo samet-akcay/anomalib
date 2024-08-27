@@ -247,7 +247,7 @@ class ExportMixin:
             logger.exception("Could not find OpenVINO. Please check OpenVINO installation.")
             raise ModuleNotFoundError
 
-        import openvino as ov
+        import openvino as ov  # noqa: PLC0415
 
         with TemporaryDirectory() as onnx_directory:
             model_path = self.to_onnx(onnx_directory, input_size, transform, task)
@@ -310,8 +310,8 @@ class ExportMixin:
 
         return model
 
+    @staticmethod
     def _post_training_quantization_ov(
-        self,
         model: "CompiledModel",
         datamodule: AnomalibDataModule | None = None,
     ) -> "CompiledModel":
@@ -325,7 +325,7 @@ class ExportMixin:
         Returns:
             model (CompiledModel): Quantized model.
         """
-        import nncf
+        import nncf  # noqa: PLC0415
 
         if datamodule is None:
             msg = "Datamodule must be provided for OpenVINO INT8_PTQ compression"
@@ -345,8 +345,8 @@ class ExportMixin:
         calibration_dataset = nncf.Dataset(dataloader, lambda x: x["image"])
         return nncf.quantize(model, calibration_dataset)
 
+    @staticmethod
     def _accuracy_control_quantization_ov(
-        self,
         model: "CompiledModel",
         datamodule: AnomalibDataModule | None = None,
         metric: Metric | str | None = None,
@@ -368,7 +368,7 @@ class ExportMixin:
         Returns:
             model (CompiledModel): Quantized model.
         """
-        import nncf
+        import nncf  # noqa: PLC0415
 
         if datamodule is None:
             msg = "Datamodule must be provided for OpenVINO INT8_PTQ compression"

@@ -42,6 +42,7 @@ class DecoderBasicBlock(nn.Module):
         inplanes: int,
         planes: int,
         stride: int = 1,
+        *,
         upsample: nn.Module | None = None,
         groups: int = 1,
         base_width: int = 64,
@@ -117,6 +118,7 @@ class DecoderBottleneck(nn.Module):
         inplanes: int,
         planes: int,
         stride: int = 1,
+        *,
         upsample: nn.Module | None = None,
         groups: int = 1,
         base_width: int = 64,
@@ -189,6 +191,7 @@ class ResNet(nn.Module):
         self,
         block: type[DecoderBasicBlock | DecoderBottleneck],
         layers: list[int],
+        *,
         zero_init_residual: bool = False,
         groups: int = 1,
         width_per_group: int = 64,
@@ -336,7 +339,7 @@ def get_decoder(name: str) -> ResNet:
     Returns:
         ResNet: Decoder ResNet architecture.
     """
-    if name in (
+    if name in {
         "resnet18",
         "resnet34",
         "resnet50",
@@ -346,7 +349,7 @@ def get_decoder(name: str) -> ResNet:
         "resnext101_32x8d",
         "wide_resnet50_2",
         "wide_resnet101_2",
-    ):
+    }:
         decoder = globals()[f"de_{name}"]
     else:
         msg = f"Decoder with architecture {name} not supported"

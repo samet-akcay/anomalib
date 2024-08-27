@@ -37,6 +37,7 @@ class Encoder(nn.Module):
         latent_vec_size: int,
         num_input_channels: int,
         n_features: int,
+        *,
         extra_layers: int = 0,
         add_final_conv_layer: bool = True,
     ) -> None:
@@ -160,7 +161,7 @@ class Decoder(nn.Module):
             self.inverse_pyramid.add_module(f"pyramid-{out_features}-batchnorm", nn.BatchNorm2d(out_features))
             self.inverse_pyramid.add_module(f"pyramid-{out_features}-relu", nn.ReLU(inplace=True))
             n_input_features = out_features
-            pyramid_dim = pyramid_dim // 2
+            pyramid_dim //= 2
 
         # Extra Layers
         self.extra_layers = nn.Sequential()
@@ -314,6 +315,7 @@ class GanomalyModel(nn.Module):
         num_input_channels: int,
         n_features: int,
         latent_vec_size: int,
+        *,
         extra_layers: int = 0,
         add_final_conv_layer: bool = True,
     ) -> None:

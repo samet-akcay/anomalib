@@ -83,8 +83,8 @@ class RegionExtractor(nn.Module):
 
         return self.post_process_bbox_detections(regions)
 
+    @staticmethod
     def add_foreground_boxes(
-        self,
         regions: list[dict[str, torch.Tensor]],
         first_frame: torch.Tensor,
         last_frame: torch.Tensor,

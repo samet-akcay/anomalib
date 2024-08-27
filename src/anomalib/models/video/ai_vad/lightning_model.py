@@ -63,6 +63,7 @@ class AiVad(MemoryBankMixin, AnomalyModule):
         self,
         box_score_thresh: float = 0.7,
         persons_only: bool = False,
+        *,
         min_bbox_area: int = 100,
         max_bbox_overlap: float = 0.65,
         enable_foreground_detections: bool = True,
@@ -159,7 +160,7 @@ class AiVad(MemoryBankMixin, AnomalyModule):
         """
         return LearningType.ONE_CLASS
 
-    def configure_transforms(self, image_size: tuple[int, int] | None = None) -> Transform | None:
+    def configure_transforms(self, image_size: tuple[int, int] | None = None) -> Transform | None:  # noqa: PLR6301
         """AI-VAD does not need a transform, as the region- and feature-extractors apply their own transforms."""
         del image_size
         return None

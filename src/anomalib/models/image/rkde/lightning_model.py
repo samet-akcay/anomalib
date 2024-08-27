@@ -52,6 +52,7 @@ class Rkde(MemoryBankMixin, AnomalyModule):
         roi_score_threshold: float = 0.001,
         min_box_size: int = 25,
         iou_threshold: float = 0.3,
+        *,
         max_detections_per_image: int = 100,
         n_pca_components: int = 16,
         feature_scaling_method: FeatureScalingMethod = FeatureScalingMethod.SCALE,

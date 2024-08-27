@@ -5,7 +5,7 @@
 
 import torch
 from kornia.filters import get_gaussian_kernel2d
-from kornia.filters.filter import _compute_padding
+from kornia.filters.filter import _compute_padding  # noqa: PLC2701
 from kornia.filters.kernels import normalize_kernel2d
 from torch import nn
 from torch.nn import functional as F  # noqa: N812
@@ -36,6 +36,7 @@ class GaussianBlur2d(nn.Module):
         sigma: float | tuple[float, float],
         channels: int = 1,
         kernel_size: int | tuple[int, int] | None = None,
+        *,
         normalize: bool = True,
         border_type: str = "reflect",
         padding: str = "same",

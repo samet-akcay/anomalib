@@ -14,6 +14,7 @@ def add_label(
     image: np.ndarray,
     label_name: str,
     color: tuple[int, int, int],
+    *,
     confidence: float | None = None,
     font_scale: float = 5e-3,
     thickness_scale: float = 1e-3,

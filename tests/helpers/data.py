@@ -17,7 +17,7 @@ from skimage import img_as_ubyte
 from skimage.io import imsave
 
 from anomalib.data import DataFormat
-from anomalib.data.utils import Augmenter, LabelName
+from anomalib.data.utils import LabelName
 
 
 class DummyImageGenerator:
@@ -48,6 +48,7 @@ class DummyImageGenerator:
         self.image_shape = image_shape
         self.num_channels = num_channels
         self.min_size = min_size
+        self.rng = rng or np.random.default_rng()
         self.image_generator = DummyImageGenerator(image_shape=image_shape, rng=self.rng)
 
     def generate_normal_image(self) -> tuple[np.ndarray, np.ndarray]:
@@ -297,6 +298,7 @@ class DummyImageDatasetGenerator(DummyDatasetGenerator):
         self,
         data_format: DataFormat | str = "mvtec",
         root: Path | str | None = None,
+        *,
         normal_category: str = "good",
         abnormal_category: str = "bad",
         num_train: int = 5,
@@ -449,6 +451,7 @@ class DummyVideoDatasetGenerator(DummyDatasetGenerator):
         self,
         data_format: DataFormat | str,
         root: Path | str | None = None,
+        *,
         num_train: int = 5,
         num_test: int = 5,
         seed: int | None = None,

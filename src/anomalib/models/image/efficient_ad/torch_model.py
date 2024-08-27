@@ -319,7 +319,8 @@ class EfficientAdModel(nn.Module):
             },
         )
 
-    def is_set(self, p_dic: nn.ParameterDict) -> bool:
+    @staticmethod
+    def is_set(p_dic: nn.ParameterDict) -> bool:
         """Check if any of the parameters in the parameter dictionary is set.
 
         Args:
@@ -330,7 +331,8 @@ class EfficientAdModel(nn.Module):
         """
         return any(value.sum() != 0 for _, value in p_dic.items())
 
-    def choose_random_aug_image(self, image: torch.Tensor) -> torch.Tensor:
+    @staticmethod
+    def choose_random_aug_image(image: torch.Tensor) -> torch.Tensor:
         """Choose a random augmentation function and apply it to the input image.
 
         Args:
@@ -349,7 +351,7 @@ class EfficientAdModel(nn.Module):
         transform_function = np.random.default_rng().choice(transform_functions)
         return transform_function(image, coefficient)
 
-    def forward(
+    def forward(  # noqa: PLR0914
         self,
         batch: torch.Tensor,
         batch_imagenet: torch.Tensor | None = None,

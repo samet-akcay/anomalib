@@ -124,11 +124,11 @@ class FastflowModel(nn.Module):
 
         self.input_size = input_size
 
-        if backbone in ("cait_m48_448", "deit_base_distilled_patch16_384"):
+        if backbone in {"cait_m48_448", "deit_base_distilled_patch16_384"}:
             self.feature_extractor = timm.create_model(backbone, pretrained=pre_trained)
             channels = [768]
             scales = [16]
-        elif backbone in ("resnet18", "wide_resnet50_2"):
+        elif backbone in {"resnet18", "wide_resnet50_2"}:
             self.feature_extractor = timm.create_model(
                 backbone,
                 pretrained=pre_trained,
@@ -230,7 +230,7 @@ class FastflowModel(nn.Module):
             list[torch.Tensor]: List of features.
         """
         feature = self.feature_extractor.patch_embed(input_tensor)
-        feature = feature + self.feature_extractor.pos_embed
+        feature += self.feature_extractor.pos_embed
         feature = self.feature_extractor.pos_drop(feature)
         for i in range(41):  # paper Table 6. Block Index = 40
             feature = self.feature_extractor.blocks[i](feature)

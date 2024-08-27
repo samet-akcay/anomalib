@@ -45,6 +45,7 @@ class Fre(AnomalyModule):
         backbone: str = "resnet50",
         layer: str = "layer3",
         pre_trained: bool = True,
+        *,
         pooling_kernel_size: int = 2,
         input_dim: int = 65536,
         latent_dim: int = 220,

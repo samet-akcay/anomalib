@@ -72,6 +72,7 @@ class CombinedDensityEstimator(BaseDensityEstimator):
         use_pose_features: bool = True,
         use_deep_features: bool = True,
         use_velocity_features: bool = False,
+        *,
         n_neighbors_pose: int = 1,
         n_neighbors_deep: int = 1,
         n_components_velocity: int = 5,

@@ -53,6 +53,10 @@ class AiVadModel(nn.Module):
 
     def __init__(
         self,
+        use_velocity_features: bool = True,
+        use_pose_features: bool = True,
+        use_deep_features: bool = True,
+        *,
         # region-extraction params
         box_score_thresh: float = 0.8,
         persons_only: bool = False,
@@ -63,9 +67,6 @@ class AiVadModel(nn.Module):
         foreground_binary_threshold: int = 18,
         # feature-extraction params
         n_velocity_bins: int = 8,
-        use_velocity_features: bool = True,
-        use_pose_features: bool = True,
-        use_deep_features: bool = True,
         # density-estimation params
         n_components_velocity: int = 5,
         n_neighbors_pose: int = 1,

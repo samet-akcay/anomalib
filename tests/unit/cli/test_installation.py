@@ -22,7 +22,7 @@ from anomalib.cli.utils.installation import (
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def requirements_file() -> Path:
     """Create a temporary requirements file with some example requirements."""
     requirements = ["numpy==1.19.5", "opencv-python-headless>=4.5.1.48"]

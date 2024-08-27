@@ -16,18 +16,19 @@ sys.path.append("tools/inference")
 class TestLightningInferenceEntrypoint:
     """This tests whether the entrypoints run without errors without quantitative measure of the outputs."""
 
-    @pytest.fixture()
-    def get_functions(self) -> tuple[Callable, Callable]:
+    @pytest.fixture
+    @staticmethod
+    def get_functions() -> tuple[Callable, Callable]:
         """Get functions from lightning_inference.py."""
         if find_spec("lightning_inference") is not None:
-            from tools.inference.lightning_inference import get_parser, infer
+            from tools.inference.lightning_inference import get_parser, infer  # noqa: PLC0415
         else:
             msg = "Unable to import lightning_inference.py for testing"
             raise ImportError(msg)
         return get_parser, infer
 
+    @staticmethod
     def test_lightning_inference(
-        self,
         get_functions: tuple[Callable, Callable],
         project_path: Path,
         get_dummy_inference_image: str,

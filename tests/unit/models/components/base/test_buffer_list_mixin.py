@@ -26,7 +26,7 @@ class BufferListModule(BufferListMixin):
         self.register_buffer_list("non_persistent_tensor_list", tensor_list, persistent=False)
 
 
-@pytest.fixture()
+@pytest.fixture
 def module() -> BufferListModule:
     """Fixture that returns a BufferListModule object."""
     return BufferListModule()

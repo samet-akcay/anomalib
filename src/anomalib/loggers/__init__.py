@@ -21,9 +21,9 @@ try:
     __all__.extend(
         [
             "AnomalibCometLogger",
+            "AnomalibMLFlowLogger",
             "AnomalibTensorBoardLogger",
             "AnomalibWandbLogger",
-            "AnomalibMLFlowLogger",
         ],
     )
 except ImportError:

@@ -15,12 +15,12 @@ from tests.unit.data.base.video import _TestAnomalibVideoDatamodule
 class TestShanghaiTech(_TestAnomalibVideoDatamodule):
     """ShanghaiTech Datamodule Unit Tests."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def clip_length_in_frames(self) -> int:
         """Return the number of frames in each clip."""
         return 2
 
-    @pytest.fixture()
+    @pytest.fixture
     def datamodule(self, dataset_path: Path, task_type: TaskType, clip_length_in_frames: int) -> ShanghaiTech:
         """Create and return a Shanghai datamodule."""
         _datamodule = ShanghaiTech(
@@ -39,7 +39,7 @@ class TestShanghaiTech(_TestAnomalibVideoDatamodule):
 
         return _datamodule
 
-    @pytest.fixture()
+    @pytest.fixture
     def fxt_data_config_path(self) -> str:
         """Return the path to the test data config."""
         return "configs/data/shanghaitec.yaml"

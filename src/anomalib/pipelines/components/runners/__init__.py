@@ -6,4 +6,4 @@
 from .parallel import ParallelRunner
 from .serial import SerialRunner
 
-__all__ = ["SerialRunner", "ParallelRunner"]
+__all__ = ["ParallelRunner", "SerialRunner"]

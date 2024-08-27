@@ -9,9 +9,9 @@ from .metrics import MetricsVisualizer
 
 __all__ = [
     "BaseVisualizer",
+    "GeneratorResult",
     "ImageResult",
     "ImageVisualizer",
-    "GeneratorResult",
     "MetricsVisualizer",
     "VisualizationStep",
 ]

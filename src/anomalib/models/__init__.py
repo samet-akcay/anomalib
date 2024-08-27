@@ -40,6 +40,7 @@ class UnknownModelError(ModuleNotFoundError):
 
 
 __all__ = [
+    "AiVad",
     "Cfa",
     "Cflow",
     "Csflow",
@@ -57,7 +58,6 @@ __all__ = [
     "Rkde",
     "Stfpm",
     "Uflow",
-    "AiVad",
     "WinClip",
 ]
 

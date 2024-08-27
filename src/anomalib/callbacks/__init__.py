@@ -19,9 +19,9 @@ from .tiler_configuration import TilerConfigurationCallback
 from .timer import TimerCallback
 
 __all__ = [
-    "ModelCheckpoint",
     "GraphLogger",
     "LoadModelCallback",
+    "ModelCheckpoint",
     "TilerConfigurationCallback",
     "TimerCallback",
 ]

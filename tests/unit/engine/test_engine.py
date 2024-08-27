@@ -17,7 +17,7 @@ from anomalib.models import Padim
 class TestEngine:
     """Test Engine."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def fxt_full_config_path(self, tmp_path: Path) -> Path:
         """Fixture full configuration examples."""
         config_str = """

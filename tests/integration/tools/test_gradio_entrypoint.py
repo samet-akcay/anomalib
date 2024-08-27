@@ -23,7 +23,7 @@ class TestGradioInferenceEntrypoint:
     Note: This does not launch the gradio server. It only checks if the right inferencer is called.
     """
 
-    @pytest.fixture()
+    @pytest.fixture
     def get_functions(self) -> tuple[Callable, Callable]:
         """Get functions from Gradio_inference.py."""
         if find_spec("gradio_inference") is not None:

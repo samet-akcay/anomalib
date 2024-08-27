@@ -9,7 +9,7 @@ from .utils import dryrun_find_featuremap_dims
 
 __all__ = [
     "BackboneParams",
-    "dryrun_find_featuremap_dims",
     "TimmFeatureExtractor",
     "TorchFXFeatureExtractor",
+    "dryrun_find_featuremap_dims",
 ]

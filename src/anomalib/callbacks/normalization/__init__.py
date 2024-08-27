@@ -9,4 +9,4 @@ Note: These callbacks are used within the Engine.
 from .min_max_normalization import _MinMaxNormalizationCallback
 from .utils import get_normalization_callback
 
-__all__ = ["get_normalization_callback", "_MinMaxNormalizationCallback"]
+__all__ = ["_MinMaxNormalizationCallback", "get_normalization_callback"]

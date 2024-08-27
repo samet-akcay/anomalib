@@ -119,7 +119,7 @@ class ConfigAdapter:
     @staticmethod
     def safe_load(path: str | Path) -> dict:
         """Load a yaml file and return the content as a dictionary."""
-        with Path(path).open("r") as f:
+        with Path(path).open("r", encoding="utf-8") as f:
             return yaml.safe_load(f)
 
     def upgrade_data_config(self) -> dict[str, Any]:
@@ -248,7 +248,8 @@ class ConfigAdapter:
         """Create seed everything field in v1 config."""
         return {"seed_everything": bool(self.old_config["project"]["seed"])}
 
-    def add_ckpt_path_config(self) -> dict[str, Any]:
+    @staticmethod
+    def add_ckpt_path_config() -> dict[str, Any]:
         """Create checkpoint path directory in v1 config."""
         return {"ckpt_path": None}
 
@@ -302,16 +303,8 @@ class ConfigAdapter:
 
     @staticmethod
     def save_config(config: dict, path: str | Path) -> None:
-        """Save the given configuration dictionary to a YAML file.
-
-        Args:
-            config (dict): The configuration dictionary to be saved.
-            path (str | Path): The path to the output file.
-
-        Returns:
-            None
-        """
-        with Path(path).open("w") as file:
+        """Save the given configuration dictionary to a YAML file."""
+        with Path(path).open("w", encoding="utf-8") as file:
             yaml.safe_dump(config, file, sort_keys=False)
 
 

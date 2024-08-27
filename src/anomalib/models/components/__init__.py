@@ -11,15 +11,15 @@ from .sampling import KCenterGreedy
 from .stats import GaussianKDE, MultiVariateGaussian
 
 __all__ = [
+    "PCA",
     "AnomalyModule",
     "BufferListMixin",
     "DynamicBufferMixin",
-    "MemoryBankMixin",
-    "GaussianKDE",
     "GaussianBlur2d",
+    "GaussianKDE",
     "KCenterGreedy",
+    "MemoryBankMixin",
     "MultiVariateGaussian",
-    "PCA",
     "SparseRandomProjection",
     "TimmFeatureExtractor",
     "TorchFXFeatureExtractor",

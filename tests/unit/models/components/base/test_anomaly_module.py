@@ -13,7 +13,7 @@ from anomalib.models.components.base import AnomalyModule
 class TestAnomalyModule:
     """Test AnomalyModule."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def fxt_model_config_folder_path(self) -> str:
         """Fixture that returns model config folder path."""
         return "configs/model"

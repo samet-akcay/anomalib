@@ -90,7 +90,7 @@ class DummyDataModule(AnomalibDataModule):
         self.test_data = DummyDataset(transform=self.eval_transform)
 
 
-@pytest.fixture()
+@pytest.fixture
 def checkpoint_path() -> Generator:
     """Fixture to create a temporary checkpoint file that stores a Resize transform."""
     # Create a temporary file

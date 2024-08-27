@@ -15,7 +15,7 @@ from tests.unit.data.base import _TestAnomalibDepthDatamodule
 class TestMVTec3D(_TestAnomalibDepthDatamodule):
     """MVTec Datamodule Unit Tests."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def datamodule(self, dataset_path: Path, task_type: TaskType) -> MVTec3D:
         """Create and return a Folder 3D datamodule."""
         _datamodule = MVTec3D(
@@ -32,7 +32,7 @@ class TestMVTec3D(_TestAnomalibDepthDatamodule):
 
         return _datamodule
 
-    @pytest.fixture()
+    @pytest.fixture
     def fxt_data_config_path(self) -> str:
         """Return the path to the test data config."""
         return "configs/data/mvtec_3d.yaml"

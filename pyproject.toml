@@ -96,6 +96,9 @@ version = { attr = "anomalib.__version__" }
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # RUFF CONFIGURATION                                                          #
 [tool.ruff]
+# Enable preview features
+preview = true
+
 # Enable rules
 lint.select = [
     "F",    # Pyflakes (`F`)
@@ -225,6 +228,11 @@ max-complexity = 15
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+[tool.ruff.lint.flake8-copyright]
+notice-rgx = """
+# Copyright \\(C\\) (\\d{4}(-\\d{4})?) Intel Corporation
+# SPDX-License-Identifier: Apache-2\\.0
+"""
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # MYPY CONFIGURATION.                                                         #

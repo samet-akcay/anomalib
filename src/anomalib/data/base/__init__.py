@@ -9,9 +9,9 @@ from .depth import AnomalibDepthDataset
 from .video import AnomalibVideoDataModule, AnomalibVideoDataset
 
 __all__ = [
-    "AnomalibDataset",
     "AnomalibDataModule",
-    "AnomalibVideoDataset",
-    "AnomalibVideoDataModule",
+    "AnomalibDataset",
     "AnomalibDepthDataset",
+    "AnomalibVideoDataModule",
+    "AnomalibVideoDataset",
 ]

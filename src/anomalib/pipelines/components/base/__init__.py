@@ -7,4 +7,4 @@ from .job import Job, JobGenerator
 from .pipeline import Pipeline
 from .runner import Runner
 
-__all__ = ["Job", "JobGenerator", "Runner", "Pipeline"]
+__all__ = ["Job", "JobGenerator", "Pipeline", "Runner"]

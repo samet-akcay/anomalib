@@ -6,4 +6,4 @@
 from .export import CompressionType, ExportType
 from .inferencers import Inferencer, OpenVINOInferencer, TorchInferencer
 
-__all__ = ["Inferencer", "OpenVINOInferencer", "TorchInferencer", "ExportType", "CompressionType"]
+__all__ = ["CompressionType", "ExportType", "Inferencer", "OpenVINOInferencer", "TorchInferencer"]

@@ -18,7 +18,7 @@ class TestFolder(_TestAnomalibImageDatamodule):
     All of the folder datamodule tests are placed in ``TestFolder`` class.
     """
 
-    @pytest.fixture()
+    @pytest.fixture
     def datamodule(self, dataset_path: Path, task_type: TaskType) -> Folder:
         """Create and return a Folder datamodule."""
         # Make sure to use a mask directory for segmentation. Folder datamodule
@@ -42,7 +42,7 @@ class TestFolder(_TestAnomalibImageDatamodule):
 
         return _datamodule
 
-    @pytest.fixture()
+    @pytest.fixture
     def fxt_data_config_path(self) -> str:
         """Return the path to the test data config."""
         return "configs/data/folder.yaml"

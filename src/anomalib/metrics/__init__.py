@@ -24,9 +24,10 @@ from .pro import PRO
 from .threshold import F1AdaptiveThreshold, ManualThreshold
 
 __all__ = [
-    "AUROC",
     "AUPR",
     "AUPRO",
+    "AUROC",
+    "PRO",
     "AnomalyScoreDistribution",
     "BinaryPrecisionRecallCurve",
     "F1AdaptiveThreshold",
@@ -34,7 +35,6 @@ __all__ = [
     "F1Score",
     "ManualThreshold",
     "MinMax",
-    "PRO",
 ]
 
 logger = logging.getLogger(__name__)
@@ -95,7 +95,7 @@ def _validate_metrics_dict(metrics: dict[str, dict[str, Any]]) -> None:
         raise ValueError(msg)
 
     if not all(
-        "init_args" in metric and isinstance(metric["init_args"], dict) or isinstance(metric["init_args"], DictConfig)
+        ("init_args" in metric and isinstance(metric["init_args"], dict)) or isinstance(metric["init_args"], DictConfig)
         for metric in metrics.values()
     ):
         msg = "All internal dictionaries must have a 'init_args' key whose value is of type dict."

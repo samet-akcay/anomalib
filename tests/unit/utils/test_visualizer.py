@@ -15,7 +15,7 @@ from anomalib import TaskType
 from anomalib.data import MVTec, PredictDataset
 from anomalib.engine import Engine
 from anomalib.models import get_model
-from anomalib.utils.visualization.image import _ImageGrid
+from anomalib.utils.visualization.image import _ImageGrid  # noqa: PLC2701
 
 
 def test_visualize_fully_defected_masks() -> None:
@@ -38,9 +38,9 @@ def test_visualize_fully_defected_masks() -> None:
 class TestVisualizer:
     """Test visualization callback for test and predict with different task types."""
 
+    @staticmethod
     @pytest.mark.parametrize("task", [TaskType.CLASSIFICATION, TaskType.SEGMENTATION, TaskType.DETECTION])
     def test_model_visualizer_mode(
-        self,
         ckpt_path: Callable[[str], Path],
         project_path: Path,
         dataset_path: Path,

@@ -32,7 +32,7 @@ class DynamicBufferModule(DynamicBufferMixin):
         super()._load_from_state_dict(state_dict, prefix, *default_args.values())
 
 
-@pytest.fixture()
+@pytest.fixture
 def module() -> DynamicBufferModule:
     """Fixture that returns a DynamicBufferModule object."""
     return DynamicBufferModule()

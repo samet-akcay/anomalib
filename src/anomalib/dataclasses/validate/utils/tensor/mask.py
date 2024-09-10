@@ -13,7 +13,7 @@ from torchvision.tv_tensors import Mask
 
 
 # Item-level mask validation
-def validate_gt_mask(mask: torch.Tensor) -> Mask:
+def validate_gt_mask(mask: torch.Tensor | None) -> Mask | None:
     """Validate and convert the input PyTorch mask.
 
     Args:
@@ -55,6 +55,9 @@ def validate_gt_mask(mask: torch.Tensor) -> Mask:
             ...
         TypeError: Ground truth mask must be a torch.Tensor, got <class 'numpy.ndarray'>.
     """
+    if mask is None:
+        return None
+
     if not isinstance(mask, torch.Tensor):
         msg = f"Ground truth mask must be a torch.Tensor, got {type(mask)}."
         raise TypeError(msg)
@@ -70,7 +73,7 @@ def validate_gt_mask(mask: torch.Tensor) -> Mask:
     return Mask(mask, dtype=torch.bool)
 
 
-def validate_pred_mask(pred_mask: torch.Tensor) -> Mask:
+def validate_pred_mask(pred_mask: torch.Tensor | None) -> Mask | None:
     """Validate and convert the input PyTorch predicted mask.
 
     Args:
@@ -107,6 +110,9 @@ def validate_pred_mask(pred_mask: torch.Tensor) -> Mask:
             ...
         ValueError: Predicted mask must have 1 channel, got 3.
     """
+    if pred_mask is None:
+        return None
+
     if not isinstance(pred_mask, torch.Tensor):
         msg = f"Predicted mask must be a torch.Tensor, got {type(pred_mask)}."
         raise TypeError(msg)

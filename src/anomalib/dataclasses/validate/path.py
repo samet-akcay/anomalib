@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 
-def validate_path(path: str | Path | None) -> str | None:
+def validate_path(path: str | Path) -> str:
     """Validate a single input path.
 
     Args:
@@ -29,8 +29,6 @@ def validate_path(path: str | Path | None) -> str | None:
         >>> validate_path(Path("/path/to/file.png"))
         '/path/to/file.png'
     """
-    if path is None:
-        return None
     if isinstance(path, str | Path):
         return str(path)
     msg = f"Path must be None, a string, or Path object, got {type(path)}."

@@ -64,7 +64,7 @@ def validate_pred_score(pred_score: torch.Tensor | float) -> torch.Tensor:
     return pred_score.to(torch.float32)
 
 
-def validate_anomaly_map(anomaly_map: torch.Tensor) -> Mask:
+def validate_anomaly_map(anomaly_map: torch.Tensor | None) -> Mask | None:
     """Validate and convert the input PyTorch anomaly map.
 
     Args:
@@ -101,10 +101,11 @@ def validate_anomaly_map(anomaly_map: torch.Tensor) -> Mask:
             ...
         ValueError: Anomaly map must have 1 channel, got 3.
     """
+    if anomaly_map is None:
+        return None
     if not isinstance(anomaly_map, torch.Tensor):
         msg = f"Anomaly map must be a torch.Tensor, got {type(anomaly_map)}."
         raise TypeError(msg)
-
     if anomaly_map.ndim not in {2, 3}:
         msg = f"Anomaly map must have shape [H, W] or [1, H, W], got shape {anomaly_map.shape}."
         raise ValueError(msg)

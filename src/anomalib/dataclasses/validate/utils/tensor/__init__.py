@@ -7,6 +7,14 @@ from .image import validate_batch_image, validate_dimensions, validate_image
 from .label import validate_batch_gt_label, validate_gt_label, validate_pred_label
 from .mask import validate_batch_gt_mask, validate_gt_mask, validate_pred_mask
 from .score import validate_anomaly_map, validate_batch_anomaly_map, validate_pred_score
+from .video import (
+    validate_frames,
+    validate_last_frame,
+    validate_target_frame,
+    validate_video,
+    validate_video_gt_label,
+    validate_video_gt_mask,
+)
 
 __all__ = [
     # Common torch data item validations
@@ -23,4 +31,11 @@ __all__ = [
     "validate_batch_image",
     "validate_batch_gt_label",
     "validate_batch_gt_mask",
+    # Torch video validations
+    "validate_frames",
+    "validate_last_frame",
+    "validate_video",
+    "validate_video_gt_label",
+    "validate_video_gt_mask",
+    "validate_target_frame",
 ]

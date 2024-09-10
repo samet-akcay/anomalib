@@ -17,7 +17,7 @@ import torch
 
 
 # Item-level label validation
-def validate_gt_label(label: int | torch.Tensor) -> torch.Tensor:
+def validate_gt_label(label: int | torch.Tensor | None) -> torch.Tensor | None:
     """Validate and convert the input label to a boolean PyTorch tensor.
 
     Args:
@@ -64,6 +64,8 @@ def validate_gt_label(label: int | torch.Tensor) -> torch.Tensor:
             ...
         TypeError: Ground truth label must be an integer or a torch.Tensor, got <class 'str'>.
     """
+    if label is None:
+        return None
     if isinstance(label, int):
         return torch.tensor(label, dtype=torch.bool)
     if isinstance(label, torch.Tensor):
@@ -78,7 +80,7 @@ def validate_gt_label(label: int | torch.Tensor) -> torch.Tensor:
     raise TypeError(msg)
 
 
-def validate_pred_label(pred_label: torch.Tensor | int) -> torch.Tensor:
+def validate_pred_label(pred_label: torch.Tensor | int | None) -> torch.Tensor | None:
     """Validate and convert the input PyTorch predicted label.
 
     Args:
@@ -116,6 +118,8 @@ def validate_pred_label(pred_label: torch.Tensor | int) -> torch.Tensor:
             ...
         ValueError: Predicted label must be a scalar, got shape torch.Size([2]).
     """
+    if pred_label is None:
+        return None
     if isinstance(pred_label, int):
         pred_label = torch.tensor(pred_label)
     if not isinstance(pred_label, torch.Tensor):

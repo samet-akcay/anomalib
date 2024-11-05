@@ -1,0 +1,66 @@
+name: Release Security Checks
+
+on:
+  release:
+    types: [created, edited]
+  workflow_dispatch:
+
+jobs:
+  semgrep:
+    name: Semgrep Security Scan
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/static-analysis/semgrep
+        with:
+          publish_token: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+  virus-scan:
+    name: ClamAV Virus Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/security/clamav
+
+  bandit:
+    name: Bandit Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/security/bandit
+        with:
+          python-version: "3.10"
+
+  trivy:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/security/trivy
+        with:
+          severity: "CRITICAL,HIGH"
+
+  security-report:
+    name: Generate Security Report
+    needs: [semgrep, virus-scan, bandit, trivy]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check job status
+        run: |
+          echo "Security Scan Summary:"
+          echo "Semgrep: ${{ needs.semgrep.result }}"
+          echo "Virus Scan: ${{ needs.virus-scan.result }}"
+          echo "Bandit: ${{ needs.bandit.result }}"
+          echo "Trivy: ${{ needs.trivy.result }}"
+
+          if [[ "${{ needs.semgrep.result }}" == "failure" || \
+                "${{ needs.virus-scan.result }}" == "failure" || \
+                "${{ needs.bandit.result }}" == "failure" || \
+                "${{ needs.trivy.result }}" == "failure" ]]; then
+            echo "⚠️ One or more security checks failed!"
+            exit 1
+          else
+            echo "✅ All security checks passed!"
+          fi

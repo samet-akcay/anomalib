@@ -10,8 +10,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/linting/pre-commit
-        with:
-          files: "."
 
   ruff-changed:
     runs-on: ubuntu-latest
@@ -25,6 +23,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/security/bandit
+      - uses: ./.github/actions/linting/bandit
         with:
-          files: "." # Optional: can add files parameter if you want to scope it
+          files: "."

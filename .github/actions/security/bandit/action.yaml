@@ -1,12 +1,12 @@
-name: 'Bandit Security Check'
-description: 'Runs Bandit security checks through pre-commit'
+name: "Bandit Security Check"
+description: "Runs Bandit security checks through pre-commit"
 inputs:
   files:
-    description: 'Files to check'
+    description: "Files to check"
     required: false
-    default: '.'
+    default: "."
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - run: |
         pip install pre-commit

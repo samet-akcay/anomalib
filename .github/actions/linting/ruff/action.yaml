@@ -1,12 +1,12 @@
-name: 'Ruff Linter'
-description: 'Runs Ruff linting'
+name: "Ruff Linter"
+description: "Runs Ruff linting"
 inputs:
   files:
-    description: 'Files to check'
+    description: "Files to check"
     required: false
-    default: '.'
+    default: "."
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - run: |
         pip install ruff

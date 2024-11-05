@@ -23,45 +23,130 @@ on:
         required: false
         default: "3.10"
         type: string
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "**"
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
 
 jobs:
   semgrep:
     name: Semgrep Security Scan
-    if: inputs.security_tool == 'semgrep' || inputs.security_tool == 'all'
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      (inputs.security_tool == 'semgrep' || inputs.security_tool == 'all') ||
+      github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/static-analysis/semgrep
         with:
           publish_token: ${{ secrets.SEMGREP_APP_TOKEN }}
+      - name: Add PR Comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const conclusion = '${{ job.status }}';
+            const message = conclusion === 'success'
+              ? '✅ Semgrep security scan passed'
+              : '❌ Semgrep security scan failed - please check the logs';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
 
   virus-scan:
     name: ClamAV Virus Scan
-    if: inputs.security_tool == 'virus-scan' || inputs.security_tool == 'all'
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      (inputs.security_tool == 'virus-scan' || inputs.security_tool == 'all') ||
+      github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/security/clamav
+      - name: Add PR Comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const conclusion = '${{ job.status }}';
+            const message = conclusion === 'success'
+              ? '✅ Virus scan passed'
+              : '❌ Virus scan failed - please check the logs';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
 
   bandit:
     name: Bandit Security Scan
-    if: inputs.security_tool == 'bandit' || inputs.security_tool == 'all'
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      (inputs.security_tool == 'bandit' || inputs.security_tool == 'all') ||
+      github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/security/bandit
         with:
-          python-version: ${{ inputs.python_version }}
+          python-version: ${{ inputs.python_version || '3.10' }}
+      - name: Add PR Comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const conclusion = '${{ job.status }}';
+            const message = conclusion === 'success'
+              ? '✅ Bandit security scan passed'
+              : '❌ Bandit security scan failed - please check the logs';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
 
   trivy:
     name: Trivy Security Scan
-    if: inputs.security_tool == 'trivy' || inputs.security_tool == 'all'
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      (inputs.security_tool == 'trivy' || inputs.security_tool == 'all') ||
+      github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/security/trivy
         with:
-          severity: ${{ inputs.severity_level }}
+          severity: ${{ inputs.severity_level || 'CRITICAL,HIGH' }}
+      - name: Add PR Comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const conclusion = '${{ job.status }}';
+            const message = conclusion === 'success'
+              ? '✅ Trivy security scan passed'
+              : '❌ Trivy security scan failed - please check the logs';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
 
   summary:
     name: Security Checks Summary
@@ -94,12 +179,36 @@ jobs:
           print_status "Bandit" "${{ needs.bandit.result }}"
           print_status "Trivy" "${{ needs.trivy.result }}"
 
-          # Check if any enabled job failed
-          for result in "${{ needs.semgrep.result }}" "${{ needs.virus-scan.result }}" "${{ needs.bandit.result }}" "${{ needs.trivy.result }}"; do
-            if [[ "$result" == "failure" ]]; then
-              echo "⚠️ One or more security checks failed!"
-              exit 1
-            fi
-          done
+      - name: Add PR Summary Comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const results = {
+              semgrep: '${{ needs.semgrep.result }}',
+              virusScan: '${{ needs.virus-scan.result }}',
+              bandit: '${{ needs.bandit.result }}',
+              trivy: '${{ needs.trivy.result }}'
+            };
 
-          echo "✅ All executed security checks passed!"
+            const getEmoji = (result) => {
+              switch(result) {
+                case 'success': return '✅';
+                case 'failure': return '❌';
+                case 'skipped': return '⏭️';
+                default: return '❓';
+              }
+            };
+
+            const summary = Object.entries(results)
+              .map(([tool, result]) => `${getEmoji(result)} ${tool}: ${result}`)
+              .join('\n');
+
+            const message = `## Security Checks Summary\n\n${summary}`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });

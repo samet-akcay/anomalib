@@ -1,4 +1,4 @@
-name: 'Pre-commit Checks'
+name: 'Pre-Commit Checks'
 description: 'Runs all pre-commit hooks'
 inputs:
   files:
@@ -10,5 +10,8 @@ runs:
   steps:
     - run: |
         pip install pre-commit
-        pre-commit run --files ${{ inputs.files }}
+        # Install pre-commit hooks from the root config
+        pre-commit install --config .pre-commit-config.yaml
+        # Run the hooks using the root config
+        pre-commit run --config .pre-commit-config.yaml --files ${{ inputs.files }}
       shell: bash

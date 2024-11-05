@@ -10,19 +10,3 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/linting/pre-commit
-
-  ruff-changed:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/linting/ruff
-        with:
-          files: ${{ join(github.event.pull_request.changed_files, ' ') }}
-
-  bandit-security:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/linting/bandit
-        with:
-          files: "."

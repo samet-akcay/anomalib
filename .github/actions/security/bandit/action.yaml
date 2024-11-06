@@ -15,13 +15,13 @@ inputs:
     required: false
     default: "pyproject.toml"
   severity_level:
-    description: "Minimum severity level to report"
+    description: "Minimum severity level to report (all/low/medium/high)"
     required: false
-    default: "LOW"
+    default: "low"
   confidence_level:
-    description: "Minimum confidence level to report"
+    description: "Minimum confidence level to report (all/low/medium/high)"
     required: false
-    default: "LOW"
+    default: "low"
   output_format:
     description: "Format for scan results (json/txt/html/csv)"
     required: false
@@ -51,7 +51,7 @@ runs:
       shell: bash
       run: |
         python -m pip install --upgrade pip
-        pip install bandit
+        pip install bandit[toml]
 
     - name: Get changed files
       if: inputs.scan_scope == 'changed'
@@ -77,10 +77,14 @@ runs:
           FILES="${{ inputs.paths }}"
         fi
 
+        # Convert severity and confidence to lowercase
+        SEVERITY=$(echo "${{ inputs.severity_level }}" | tr '[:upper:]' '[:lower:]')
+        CONFIDENCE=$(echo "${{ inputs.confidence_level }}" | tr '[:upper:]' '[:lower:]')
+
         bandit \
           -c ${{ inputs.config_file }} \
-          -l ${{ inputs.severity_level }} \
-          -i ${{ inputs.confidence_level }} \
+          --severity-level ${SEVERITY} \
+          --confidence-level ${CONFIDENCE} \
           -f ${{ inputs.output_format }} \
           -o "${REPORT_FILE}" \
           -r ${FILES} || echo "exit_code=$?" >> $GITHUB_OUTPUT

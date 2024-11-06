@@ -32,17 +32,49 @@ runs:
         cache: pip
         cache-dependency-path: pyproject.toml
 
-    - name: Install dependencies
+    - name: Generate requirements hash
+      id: requirements-hash
       shell: bash
       run: |
+        # Generate hash of all dependencies from pyproject.toml
+        HASH=$(sha256sum pyproject.toml | cut -d ' ' -f 1)
+        echo "hash=${HASH}" >> $GITHUB_OUTPUT
+
+    - name: Cache virtualenv
+      uses: actions/cache@v4
+      id: cache-venv
+      with:
+        path: |
+          .venv
+          ~/.cache/pip
+        key: venv-${{ runner.os }}-py${{ inputs.python-version }}-${{ steps.requirements-hash.outputs.hash }}
+        restore-keys: |
+          venv-${{ runner.os }}-py${{ inputs.python-version }}-
+
+    - name: Create and activate virtual environment
+      shell: bash
+      if: steps.cache-venv.outputs.cache-hit != 'true'
+      run: |
+        python -m venv .venv
+        source .venv/bin/activate
         python -m pip install --upgrade pip
+        # Install development dependencies which include both core and test
         pip install ".[dev]"
+        # Ensure codecov is installed
         pip install codecov
+
+    - name: Activate virtual environment
+      shell: bash
+      if: steps.cache-venv.outputs.cache-hit == 'true'
+      run: |
+        source .venv/bin/activate
 
     - name: Run tests
       id: run-tests
       shell: bash
       run: |
+        source .venv/bin/activate
+
         case "${{ inputs.test-type }}" in
           "unit")
             TEST_PATH="tests/unit"
@@ -65,4 +97,5 @@ runs:
       env:
         CODECOV_TOKEN: ${{ inputs.codecov-token }}
       run: |
+        source .venv/bin/activate
         codecov -f coverage.xml -t $CODECOV_TOKEN -F ${{ inputs.test-type }}_py${{ inputs.python-version }}

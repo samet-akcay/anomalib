@@ -54,9 +54,7 @@ runs:
 
     - name: Update virus definitions
       shell: bash
-      run: |
-        sudo freshclam --quiet
-        sleep 5
+      run: sudo freshclam --quiet
 
     - name: Get changed files
       if: inputs.scan_scope == 'changed'

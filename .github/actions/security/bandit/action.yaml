@@ -51,7 +51,7 @@ runs:
       shell: bash
       run: |
         python -m pip install --upgrade pip
-        pip install bandit
+        pip install bandit[toml]
 
     - name: Get changed files
       if: inputs.scan_scope == 'changed'

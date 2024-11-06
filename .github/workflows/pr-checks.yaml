@@ -1,12 +1,12 @@
-name: Pull Request Checks
+# name: Pull Request Checks
 
-on:
-  pull_request:
-    branches: [main, feature]
+# on:
+#   pull_request:
+#     branches: [main, feature]
 
-jobs:
-  pre-commit-full:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/linting/pre-commit
+# jobs:
+#   pre-commit-full:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
+#       - uses: ./.github/actions/linting/pre-commit

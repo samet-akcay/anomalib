@@ -1,21 +1,6 @@
 name: Bandit Security Scan
 
 on:
-  # Automatic triggers
-  pull_request:
-    branches: [main, develop]
-    paths:
-      - "**.py"
-      - "pyproject.toml"
-      - ".github/workflows/bandit.yaml"
-  push:
-    branches: [main, develop]
-    paths:
-      - "**.py"
-      - "pyproject.toml"
-      - ".github/workflows/bandit.yaml"
-
-  # Manual trigger
   workflow_dispatch:
     inputs:
       scan_scope:
@@ -36,10 +21,27 @@ on:
           - MEDIUM
           - HIGH
       fail_on_findings:
-        description: "Fail workflow on findings"
+        description: "Fail workflow if issues found"
         required: true
         default: true
         type: boolean
+
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "**.py"
+      - "pyproject.toml"
+      - ".github/workflows/bandit.yaml"
+  push:
+    branches: [main, develop]
+    paths:
+      - "**.py"
+      - "pyproject.toml"
+      - ".github/workflows/bandit.yaml"
+
+permissions:
+  contents: read
+  security-events: write
 
 jobs:
   security-scan:
@@ -49,24 +51,24 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+
       - name: Run Bandit scan
         id: bandit
         uses: ./.github/actions/security/bandit
         with:
-          scan_scope: ${{ github.event.inputs.scan_scope || 'changed' }}
-          severity_level: ${{ github.event.inputs.severity_level || 'LOW' }}
-          fail_on_findings: ${{ github.event.inputs.fail_on_findings || 'true' }}
-          output_format: "sarif"
+          scan_scope: ${{ inputs.scan_scope || 'changed' }}
+          severity_level: ${{ inputs.severity_level || 'LOW' }}
+          fail_on_findings: ${{ inputs.fail_on_findings || 'true' }}
+          paths: "./src"
+          config_file: "pyproject.toml"
 
-      - name: Upload SARIF results
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: ${{ steps.bandit.outputs.report_path }}
-        if: always()
-
-      - name: Upload scan results artifact
+      - name: Upload scan results
         uses: actions/upload-artifact@v3
+        if: always()
         with:
           name: bandit-results
           path: ${{ steps.bandit.outputs.report_path }}
-        if: always()

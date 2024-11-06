@@ -1,0 +1,116 @@
+name: Security Scan
+
+on:
+  workflow_dispatch:
+    inputs:
+      severity:
+        description: "Minimum severity level"
+        required: true
+        default: "HIGH,CRITICAL"
+        type: choice
+        options:
+          - CRITICAL
+          - HIGH,CRITICAL
+          - MEDIUM,HIGH,CRITICAL
+          - LOW,MEDIUM,HIGH,CRITICAL
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - master
+      - develop
+      - "feature/**"
+      - "release/**"
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - "feature/**"
+      - "release/**"
+  schedule:
+    - cron: "0 0 * * 0" # Weekly scan on Sundays
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Python-specific vulnerability scanning
+      - name: Run Trivy Python vulnerability scan
+        id: trivy-python
+        uses: ./.github/actions/security/trivy
+        with:
+          scan_type: fs
+          vuln_type: library
+          severity: ${{ inputs.severity || 'MEDIUM,HIGH,CRITICAL' }}
+          security_checks: vuln
+          scan_target: "."
+
+      # Secret scanning
+      - name: Run Trivy secret scan
+        id: trivy-secret
+        uses: ./.github/actions/security/trivy
+        with:
+          scan_type: fs
+          security_checks: secret
+          scan_target: "."
+          format: sarif
+
+      # IaC and misconfiguration scanning
+      - name: Run Trivy config scan
+        id: trivy-config
+        uses: ./.github/actions/security/trivy
+        with:
+          scan_type: config
+          security_checks: config
+          scan_target: "."
+          format: sarif
+
+      # If you use containers, uncomment and modify this step
+      # - name: Run Trivy container scan
+      #   id: trivy-container
+      #   uses: ./.github/actions/security/trivy
+      #   with:
+      #     scan_type: image
+      #     vuln_type: "os,library"
+      #     security_checks: "vuln,config,secret"
+      #     scan_target: "your-image:tag"
+      #     format: sarif
+
+      - name: Upload vulnerability results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: ${{ steps.trivy-python.outputs.report_path }}
+          category: trivy-vuln
+
+      - name: Upload secret scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: ${{ steps.trivy-secret.outputs.report_path }}
+          category: trivy-secret
+
+      - name: Upload config scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: ${{ steps.trivy-config.outputs.report_path }}
+          category: trivy-config
+
+      - name: Upload scan artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-scan-results
+          path: trivy-*-results.*
+          retention-days: 5

@@ -1,0 +1,104 @@
+name: "Trivy Security Scanner"
+description: "Comprehensive security scanner for vulnerabilities, IaC issues, and secrets"
+
+inputs:
+  scan_type:
+    description: "Type of scan to perform (fs/config/image/repo/rootfs)"
+    required: false
+    default: "fs"
+  scan_scope:
+    description: "Scope of files to scan (all/changed)"
+    required: false
+    default: "changed"
+  scan_target:
+    description: "Target to scan (path, image name, or repo URL)"
+    required: false
+    default: "."
+  vuln_type:
+    description: "Vulnerability types to scan for (os,library)"
+    required: false
+    default: "library"
+  severity:
+    description: "Minimum severity level (UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)"
+    required: false
+    default: "MEDIUM,HIGH,CRITICAL"
+  ignore_unfixed:
+    description: "Ignore unpatched/unfixed vulnerabilities"
+    required: false
+    default: "true"
+  security_checks:
+    description: "Comma-separated security checks to enable"
+    required: false
+    default: "vuln,config,secret"
+  hide_progress:
+    description: "Hide progress output"
+    required: false
+    default: "true"
+  format:
+    description: "Output format (table,json,sarif,template)"
+    required: false
+    default: "sarif"
+  timeout:
+    description: "Timeout duration (e.g., 5m, 10m)"
+    required: false
+    default: "10m"
+
+outputs:
+  scan_result:
+    description: "Exit code of the Trivy scan"
+    value: ${{ steps.run-trivy.outputs.exit_code }}
+  report_path:
+    description: "Path to the generated report file"
+    value: ${{ steps.run-trivy.outputs.report_path }}
+  vuln_count:
+    description: "Number of vulnerabilities found"
+    value: ${{ steps.run-trivy.outputs.vuln_count }}
+
+runs:
+  using: composite
+  steps:
+    - name: Get changed files
+      if: inputs.scan_scope == 'changed'
+      id: changed-files
+      uses: tj-actions/changed-files@v41
+
+    - name: Install Trivy
+      shell: bash
+      run: |
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.48.0
+
+    - name: Run Trivy scan
+      id: run-trivy
+      shell: bash
+      run: |
+        REPORT_FILE="trivy-${{ inputs.scan_type }}-results.${{ inputs.format }}"
+
+        if [[ "${{ inputs.scan_scope }}" == "changed" && -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
+          echo "Running Trivy on changed files"
+          SCAN_TARGETS="${{ steps.changed-files.outputs.all_changed_files }}"
+        else
+          echo "Running Trivy on ${{ inputs.scan_target }}"
+          SCAN_TARGETS="${{ inputs.scan_target }}"
+        fi
+
+        # Run Trivy with specified parameters
+        trivy ${{ inputs.scan_type }} \
+          --severity ${{ inputs.severity }} \
+          --vuln-type ${{ inputs.vuln_type }} \
+          --security-checks ${{ inputs.security_checks }} \
+          --ignore-unfixed=${{ inputs.ignore_unfixed }} \
+          --hide-progress=${{ inputs.hide_progress }} \
+          --format ${{ inputs.format }} \
+          --output ${REPORT_FILE} \
+          --timeout ${{ inputs.timeout }} \
+          ${SCAN_TARGETS} || echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+        echo "report_path=${REPORT_FILE}" >> $GITHUB_OUTPUT
+
+        # Count vulnerabilities if output is in JSON format
+        if [[ "${{ inputs.format }}" == "json" ]]; then
+          VULN_COUNT=$(jq '[.Results[].Vulnerabilities[]] | length' ${REPORT_FILE})
+          echo "vuln_count=${VULN_COUNT:-0}" >> $GITHUB_OUTPUT
+        else
+          echo "vuln_count=0" >> $GITHUB_OUTPUT
+        fi

@@ -1,5 +1,5 @@
-name: "Antivirus Security Scan"
-description: "Runs antivirus scanner with configurable options"
+name: "ClamAV Security Scan"
+description: "Runs ClamAV antivirus scanner with configurable options"
 
 inputs:
   scan_scope:
@@ -76,6 +76,10 @@ runs:
         REPORT_FILE="clamav-report.${{ inputs.output_format }}"
         EXCLUDE_DIRS=$(echo "${{ inputs.exclude_dirs }}" | tr ',' ' ' | sed 's/[^ ]* */--exclude-dir=&/g')
 
+        # Convert MB to bytes for ClamAV
+        MAX_FILE_SIZE=$(( ${{ inputs.max_file_size }} * 1024 * 1024 ))
+        MAX_SCAN_SIZE=$(( ${{ inputs.max_scan_size }} * 1024 * 1024 ))
+
         if [[ "${{ inputs.scan_scope }}" == "changed" && -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
           echo "Running ClamAV on changed files"
           FILES="${{ steps.changed-files.outputs.all_changed_files }}"
@@ -89,9 +93,12 @@ runs:
         # Create temporary file for raw scan output
         TEMP_OUTPUT=$(mktemp)
 
+        echo "Running scan with max file size: ${MAX_FILE_SIZE} bytes"
+        echo "Running scan with max scan size: ${MAX_SCAN_SIZE} bytes"
+
         ${SCAN_CMD} \
-          --max-filesize=${{ inputs.max_file_size }}MB \
-          --max-scansize=${{ inputs.max_scan_size }}MB \
+          --max-filesize=${MAX_FILE_SIZE} \
+          --max-scansize=${MAX_SCAN_SIZE} \
           ${EXCLUDE_DIRS} \
           ${FILES} 2>&1 | tee ${TEMP_OUTPUT}
 

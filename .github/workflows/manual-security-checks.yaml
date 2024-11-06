@@ -1,226 +1,226 @@
-name: Manual Security Checks
+# name: Manual Security Checks
 
-on:
-  workflow_dispatch:
-    inputs:
-      security_tool:
-        description: "Select security tool to run"
-        required: true
-        type: choice
-        options:
-          - all
-          - semgrep
-          - virus-scan
-          - bandit
-          - trivy
-      severity_level:
-        description: "Severity level for scans"
-        required: false
-        default: "CRITICAL,HIGH"
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       security_tool:
+#         description: "Select security tool to run"
+#         required: true
+#         type: choice
+#         options:
+#           - all
+#           - semgrep
+#           - virus-scan
+#           - bandit
+#           - trivy
+#       severity_level:
+#         description: "Severity level for scans"
+#         required: false
+#         default: "CRITICAL,HIGH"
 
-jobs:
-  semgrep:
-    name: Semgrep Security Scan
-    if: inputs.security_tool == 'semgrep' || inputs.security_tool == 'all'
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-    steps:
-      - uses: actions/checkout@v4
+# jobs:
+#   semgrep:
+#     name: Semgrep Security Scan
+#     if: inputs.security_tool == 'semgrep' || inputs.security_tool == 'all'
+#     runs-on: ubuntu-latest
+#     permissions:
+#       security-events: write
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Run Semgrep
-        uses: returntocorp/semgrep-action@v1
-        with:
-          publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
-          generateSarif: true
-          config: >-
-            p/default
-            p/security-audit
-            p/owasp-top-ten
+#       - name: Run Semgrep
+#         uses: returntocorp/semgrep-action@v1
+#         with:
+#           publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
+#           generateSarif: true
+#           config: >-
+#             p/default
+#             p/security-audit
+#             p/owasp-top-ten
 
-      # Upload SARIF report
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: semgrep.sarif
+#       # Upload SARIF report
+#       - name: Upload SARIF file
+#         uses: github/codeql-action/upload-sarif@v3
+#         with:
+#           sarif_file: semgrep.sarif
 
-      # Generate HTML report
-      - name: Convert SARIF to HTML
-        if: always()
-        uses: advanced-security/sarif-to-html@v1
-        with:
-          sarif: semgrep.sarif
-          output: semgrep-results.html
+#       # Generate HTML report
+#       - name: Convert SARIF to HTML
+#         if: always()
+#         uses: advanced-security/sarif-to-html@v1
+#         with:
+#           sarif: semgrep.sarif
+#           output: semgrep-results.html
 
-      - name: Upload HTML Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: semgrep-report
-          path: semgrep-results.html
-          retention-days: 90
+#       - name: Upload HTML Report
+#         if: always()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: semgrep-report
+#           path: semgrep-results.html
+#           retention-days: 90
 
-  virus-scan:
-    name: ClamAV Virus Scan
-    if: inputs.security_tool == 'virus-scan' || inputs.security_tool == 'all'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+#   virus-scan:
+#     name: ClamAV Virus Scan
+#     if: inputs.security_tool == 'virus-scan' || inputs.security_tool == 'all'
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Prepare Report Directory
-        run: mkdir -p reports
+#       - name: Prepare Report Directory
+#         run: mkdir -p reports
 
-      - name: Git AV Scan
-        uses: djdefi/gitavscan@main
-        continue-on-error: true # Ensure we can capture output even if scan finds issues
-        id: avscan
+#       - name: Git AV Scan
+#         uses: djdefi/gitavscan@main
+#         continue-on-error: true # Ensure we can capture output even if scan finds issues
+#         id: avscan
 
-      - name: Generate Scan Report
-        if: always()
-        run: |
-          {
-            echo "# ClamAV Virus Scan Report"
-            echo "## Scan Details"
-            echo "- Date: $(date)"
-            echo "- Repository: ${{ github.repository }}"
-            echo "- Branch: ${{ github.ref }}"
-            echo "- Commit: ${{ github.sha }}"
-            echo ""
-            echo "## Scan Results"
-            echo "\`\`\`"
-            echo "${{ steps.avscan.outputs.output }}"
-            echo "\`\`\`"
-          } > reports/virus-scan-report.md
+#       - name: Generate Scan Report
+#         if: always()
+#         run: |
+#           {
+#             echo "# ClamAV Virus Scan Report"
+#             echo "## Scan Details"
+#             echo "- Date: $(date)"
+#             echo "- Repository: ${{ github.repository }}"
+#             echo "- Branch: ${{ github.ref }}"
+#             echo "- Commit: ${{ github.sha }}"
+#             echo ""
+#             echo "## Scan Results"
+#             echo "\`\`\`"
+#             echo "${{ steps.avscan.outputs.output }}"
+#             echo "\`\`\`"
+#           } > reports/virus-scan-report.md
 
-      - name: Upload Scan Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: virus-scan-report
-          path: reports/virus-scan-report.md
-          retention-days: 90
+#       - name: Upload Scan Report
+#         if: always()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: virus-scan-report
+#           path: reports/virus-scan-report.md
+#           retention-days: 90
 
-  bandit:
-    name: Bandit Security Scan
-    if: inputs.security_tool == 'bandit' || inputs.security_tool == 'all'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+#   bandit:
+#     name: Bandit Security Scan
+#     if: inputs.security_tool == 'bandit' || inputs.security_tool == 'all'
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Run Bandit
-        uses: opensourcesecurity/bandit-action@master
-        with:
-          path: "."
-          level: medium
-          format: sarif
-          output: bandit-results.sarif
+#       - name: Run Bandit
+#         uses: opensourcesecurity/bandit-action@master
+#         with:
+#           path: "."
+#           level: medium
+#           format: sarif
+#           output: bandit-results.sarif
 
-      # Upload SARIF report
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: bandit-results.sarif
+#       # Upload SARIF report
+#       - name: Upload SARIF file
+#         uses: github/codeql-action/upload-sarif@v3
+#         with:
+#           sarif_file: bandit-results.sarif
 
-      # Generate HTML report
-      - name: Convert SARIF to HTML
-        if: always()
-        uses: advanced-security/sarif-to-html@v1
-        with:
-          sarif: bandit-results.sarif
-          output: bandit-results.html
+#       # Generate HTML report
+#       - name: Convert SARIF to HTML
+#         if: always()
+#         uses: advanced-security/sarif-to-html@v1
+#         with:
+#           sarif: bandit-results.sarif
+#           output: bandit-results.html
 
-      - name: Upload HTML Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: bandit-report
-          path: bandit-results.html
-          retention-days: 90
+#       - name: Upload HTML Report
+#         if: always()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: bandit-report
+#           path: bandit-results.html
+#           retention-days: 90
 
-  trivy:
-    name: Trivy Security Scan
-    if: inputs.security_tool == 'trivy' || inputs.security_tool == 'all'
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-    steps:
-      - uses: actions/checkout@v4
+#   trivy:
+#     name: Trivy Security Scan
+#     if: inputs.security_tool == 'trivy' || inputs.security_tool == 'all'
+#     runs-on: ubuntu-latest
+#     permissions:
+#       security-events: write
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: "fs"
-          format: "sarif,table"
-          output: "trivy-results.sarif,trivy-results.txt"
-          severity: ${{ inputs.severity_level }}
+#       - name: Run Trivy vulnerability scanner
+#         uses: aquasecurity/trivy-action@master
+#         with:
+#           scan-type: "fs"
+#           format: "sarif,table"
+#           output: "trivy-results.sarif,trivy-results.txt"
+#           severity: ${{ inputs.severity_level }}
 
-      # Upload SARIF report
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: trivy-results.sarif
+#       # Upload SARIF report
+#       - name: Upload SARIF file
+#         uses: github/codeql-action/upload-sarif@v3
+#         with:
+#           sarif_file: trivy-results.sarif
 
-      # Convert table output to Markdown
-      - name: Generate Markdown Report
-        if: always()
-        run: |
-          {
-            echo "# Trivy Security Scan Report"
-            echo "## Scan Details"
-            echo "- Date: $(date)"
-            echo "- Severity Levels: ${{ inputs.severity_level }}"
-            echo ""
-            echo "## Findings"
-            echo "\`\`\`"
-            cat trivy-results.txt
-            echo "\`\`\`"
-          } > trivy-results.md
+#       # Convert table output to Markdown
+#       - name: Generate Markdown Report
+#         if: always()
+#         run: |
+#           {
+#             echo "# Trivy Security Scan Report"
+#             echo "## Scan Details"
+#             echo "- Date: $(date)"
+#             echo "- Severity Levels: ${{ inputs.severity_level }}"
+#             echo ""
+#             echo "## Findings"
+#             echo "\`\`\`"
+#             cat trivy-results.txt
+#             echo "\`\`\`"
+#           } > trivy-results.md
 
-      - name: Upload Reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-reports
-          path: |
-            trivy-results.sarif
-            trivy-results.md
-          retention-days: 90
+#       - name: Upload Reports
+#         if: always()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: trivy-reports
+#           path: |
+#             trivy-results.sarif
+#             trivy-results.md
+#           retention-days: 90
 
-  consolidated-report:
-    name: Generate Consolidated Report
-    needs: [semgrep, virus-scan, bandit, trivy]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download All Reports
-        uses: actions/download-artifact@v4
-        with:
-          path: all-reports
+#   consolidated-report:
+#     name: Generate Consolidated Report
+#     needs: [semgrep, virus-scan, bandit, trivy]
+#     if: always()
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Download All Reports
+#         uses: actions/download-artifact@v4
+#         with:
+#           path: all-reports
 
-      - name: Generate Consolidated Report
-        run: |
-          {
-            echo "# Security Scan Consolidated Report"
-            echo "## Summary"
-            echo "- Date: $(date)"
-            echo "- Repository: ${{ github.repository }}"
-            echo "- Workflow: ${{ github.workflow }}"
-            echo ""
-            echo "## Job Status"
-            echo "- Semgrep: ${{ needs.semgrep.result }}"
-            echo "- Virus Scan: ${{ needs.virus-scan.result }}"
-            echo "- Bandit: ${{ needs.bandit.result }}"
-            echo "- Trivy: ${{ needs.trivy.result }}"
-            echo ""
-            echo "## Individual Reports"
-            echo "See attached artifacts for detailed reports from each tool."
-          } > consolidated-report.md
+#       - name: Generate Consolidated Report
+#         run: |
+#           {
+#             echo "# Security Scan Consolidated Report"
+#             echo "## Summary"
+#             echo "- Date: $(date)"
+#             echo "- Repository: ${{ github.repository }}"
+#             echo "- Workflow: ${{ github.workflow }}"
+#             echo ""
+#             echo "## Job Status"
+#             echo "- Semgrep: ${{ needs.semgrep.result }}"
+#             echo "- Virus Scan: ${{ needs.virus-scan.result }}"
+#             echo "- Bandit: ${{ needs.bandit.result }}"
+#             echo "- Trivy: ${{ needs.trivy.result }}"
+#             echo ""
+#             echo "## Individual Reports"
+#             echo "See attached artifacts for detailed reports from each tool."
+#           } > consolidated-report.md
 
-      - name: Upload Consolidated Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-scan-report
-          path: |
-            consolidated-report.md
-            all-reports/**
-          retention-days: 90
+#       - name: Upload Consolidated Report
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: security-scan-report
+#           path: |
+#             consolidated-report.md
+#             all-reports/**
+#           retention-days: 90

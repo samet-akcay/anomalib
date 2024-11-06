@@ -1,5 +1,4 @@
 name: Bandit Security Scan
-
 on:
   workflow_dispatch:
     inputs:
@@ -27,21 +26,23 @@ on:
         type: boolean
   pull_request:
     branches:
-      - "main"
-      - "feature/**" # Use double asterisk for deeper path matching
-      - "feature/*" # Also include single level matching
+      - main
+      - "feature/**"
     paths:
       - "**.py"
       - "pyproject.toml"
       - ".github/workflows/bandit.yaml"
   push:
     branches:
-      - "main"
-      - "feature/**" # Use double asterisk for deeper path matching
-      - "feature/*" # Also include single level matching
+      - main
+      - "feature/**"
+    paths:
+      - "**.py"
+      - "pyproject.toml"
+      - ".github/workflows/bandit.yaml"
 
 permissions:
-  contents: write
+  contents: read
   security-events: write
 
 jobs:

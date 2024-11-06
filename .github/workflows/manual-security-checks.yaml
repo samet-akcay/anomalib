@@ -14,201 +14,213 @@ on:
           - bandit
           - trivy
       severity_level:
-        description: "Severity level for Trivy (comma-separated)"
+        description: "Severity level for scans"
         required: false
         default: "CRITICAL,HIGH"
-        type: string
-      python_version:
-        description: "Python version for Bandit"
-        required: false
-        default: "3.10"
-        type: string
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - "**"
-
-permissions:
-  contents: read
-  pull-requests: write
-  security-events: write
 
 jobs:
   semgrep:
     name: Semgrep Security Scan
-    if: |
-      github.event_name == 'workflow_dispatch' &&
-      (inputs.security_tool == 'semgrep' || inputs.security_tool == 'all') ||
-      github.event_name == 'pull_request'
+    if: inputs.security_tool == 'semgrep' || inputs.security_tool == 'all'
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/static-analysis/semgrep
-        with:
-          publish_token: ${{ secrets.SEMGREP_APP_TOKEN }}
-      - name: Add PR Comment
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const conclusion = '${{ job.status }}';
-            const message = conclusion === 'success'
-              ? '✅ Semgrep security scan passed'
-              : '❌ Semgrep security scan failed - please check the logs';
 
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: message
-            });
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
+          generateSarif: true
+          config: >-
+            p/default
+            p/security-audit
+            p/owasp-top-ten
+
+      # Upload SARIF report
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+
+      # Generate HTML report
+      - name: Convert SARIF to HTML
+        if: always()
+        uses: advanced-security/sarif-to-html@v1
+        with:
+          sarif: semgrep.sarif
+          output: semgrep-results.html
+
+      - name: Upload HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-report
+          path: semgrep-results.html
+          retention-days: 90
 
   virus-scan:
     name: ClamAV Virus Scan
-    if: |
-      github.event_name == 'workflow_dispatch' &&
-      (inputs.security_tool == 'virus-scan' || inputs.security_tool == 'all') ||
-      github.event_name == 'pull_request'
+    if: inputs.security_tool == 'virus-scan' || inputs.security_tool == 'all'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/security/clamav
-      - name: Add PR Comment
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const conclusion = '${{ job.status }}';
-            const message = conclusion === 'success'
-              ? '✅ Virus scan passed'
-              : '❌ Virus scan failed - please check the logs';
 
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: message
-            });
+      - name: Prepare Report Directory
+        run: mkdir -p reports
+
+      - name: Git AV Scan
+        uses: djdefi/gitavscan@main
+        continue-on-error: true # Ensure we can capture output even if scan finds issues
+        id: avscan
+
+      - name: Generate Scan Report
+        if: always()
+        run: |
+          {
+            echo "# ClamAV Virus Scan Report"
+            echo "## Scan Details"
+            echo "- Date: $(date)"
+            echo "- Repository: ${{ github.repository }}"
+            echo "- Branch: ${{ github.ref }}"
+            echo "- Commit: ${{ github.sha }}"
+            echo ""
+            echo "## Scan Results"
+            echo "\`\`\`"
+            echo "${{ steps.avscan.outputs.output }}"
+            echo "\`\`\`"
+          } > reports/virus-scan-report.md
+
+      - name: Upload Scan Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: virus-scan-report
+          path: reports/virus-scan-report.md
+          retention-days: 90
 
   bandit:
     name: Bandit Security Scan
-    if: |
-      github.event_name == 'workflow_dispatch' &&
-      (inputs.security_tool == 'bandit' || inputs.security_tool == 'all') ||
-      github.event_name == 'pull_request'
+    if: inputs.security_tool == 'bandit' || inputs.security_tool == 'all'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/security/bandit
-        with:
-          python-version: ${{ inputs.python_version || '3.10' }}
-      - name: Add PR Comment
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const conclusion = '${{ job.status }}';
-            const message = conclusion === 'success'
-              ? '✅ Bandit security scan passed'
-              : '❌ Bandit security scan failed - please check the logs';
 
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: message
-            });
+      - name: Run Bandit
+        uses: opensourcesecurity/bandit-action@master
+        with:
+          path: "."
+          level: medium
+          format: sarif
+          output: bandit-results.sarif
+
+      # Upload SARIF report
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: bandit-results.sarif
+
+      # Generate HTML report
+      - name: Convert SARIF to HTML
+        if: always()
+        uses: advanced-security/sarif-to-html@v1
+        with:
+          sarif: bandit-results.sarif
+          output: bandit-results.html
+
+      - name: Upload HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-results.html
+          retention-days: 90
 
   trivy:
     name: Trivy Security Scan
-    if: |
-      github.event_name == 'workflow_dispatch' &&
-      (inputs.security_tool == 'trivy' || inputs.security_tool == 'all') ||
-      github.event_name == 'pull_request'
+    if: inputs.security_tool == 'trivy' || inputs.security_tool == 'all'
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/security/trivy
-        with:
-          severity: ${{ inputs.severity_level || 'CRITICAL,HIGH' }}
-      - name: Add PR Comment
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const conclusion = '${{ job.status }}';
-            const message = conclusion === 'success'
-              ? '✅ Trivy security scan passed'
-              : '❌ Trivy security scan failed - please check the logs';
 
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: message
-            });
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          format: "sarif,table"
+          output: "trivy-results.sarif,trivy-results.txt"
+          severity: ${{ inputs.severity_level }}
 
-  summary:
-    name: Security Checks Summary
-    needs: [semgrep, virus-scan, bandit, trivy]
-    runs-on: ubuntu-latest
-    if: always() && (needs.semgrep.result != 'skipped' || needs.virus-scan.result != 'skipped' || needs.bandit.result != 'skipped' || needs.trivy.result != 'skipped')
-    steps:
-      - name: Check job status
+      # Upload SARIF report
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+
+      # Convert table output to Markdown
+      - name: Generate Markdown Report
+        if: always()
         run: |
-          echo "Security Scan Summary:"
+          {
+            echo "# Trivy Security Scan Report"
+            echo "## Scan Details"
+            echo "- Date: $(date)"
+            echo "- Severity Levels: ${{ inputs.severity_level }}"
+            echo ""
+            echo "## Findings"
+            echo "\`\`\`"
+            cat trivy-results.txt
+            echo "\`\`\`"
+          } > trivy-results.md
 
-          # Function to print status
-          print_status() {
-            local tool=$1
-            local result=$2
-
-            if [[ "$result" == "success" ]]; then
-              echo "✅ $tool: Passed"
-            elif [[ "$result" == "failure" ]]; then
-              echo "❌ $tool: Failed"
-            elif [[ "$result" == "skipped" ]]; then
-              echo "⏭️ $tool: Skipped"
-            else
-              echo "❓ $tool: Unknown status"
-            fi
-          }
-
-          print_status "Semgrep" "${{ needs.semgrep.result }}"
-          print_status "Virus Scan" "${{ needs.virus-scan.result }}"
-          print_status "Bandit" "${{ needs.bandit.result }}"
-          print_status "Trivy" "${{ needs.trivy.result }}"
-
-      - name: Add PR Summary Comment
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+      - name: Upload Reports
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          script: |
-            const results = {
-              semgrep: '${{ needs.semgrep.result }}',
-              virusScan: '${{ needs.virus-scan.result }}',
-              bandit: '${{ needs.bandit.result }}',
-              trivy: '${{ needs.trivy.result }}'
-            };
+          name: trivy-reports
+          path: |
+            trivy-results.sarif
+            trivy-results.md
+          retention-days: 90
 
-            const getEmoji = (result) => {
-              switch(result) {
-                case 'success': return '✅';
-                case 'failure': return '❌';
-                case 'skipped': return '⏭️';
-                default: return '❓';
-              }
-            };
+  consolidated-report:
+    name: Generate Consolidated Report
+    needs: [semgrep, virus-scan, bandit, trivy]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download All Reports
+        uses: actions/download-artifact@v4
+        with:
+          path: all-reports
 
-            const summary = Object.entries(results)
-              .map(([tool, result]) => `${getEmoji(result)} ${tool}: ${result}`)
-              .join('\n');
+      - name: Generate Consolidated Report
+        run: |
+          {
+            echo "# Security Scan Consolidated Report"
+            echo "## Summary"
+            echo "- Date: $(date)"
+            echo "- Repository: ${{ github.repository }}"
+            echo "- Workflow: ${{ github.workflow }}"
+            echo ""
+            echo "## Job Status"
+            echo "- Semgrep: ${{ needs.semgrep.result }}"
+            echo "- Virus Scan: ${{ needs.virus-scan.result }}"
+            echo "- Bandit: ${{ needs.bandit.result }}"
+            echo "- Trivy: ${{ needs.trivy.result }}"
+            echo ""
+            echo "## Individual Reports"
+            echo "See attached artifacts for detailed reports from each tool."
+          } > consolidated-report.md
 
-            const message = `## Security Checks Summary\n\n${summary}`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: message
-            });
+      - name: Upload Consolidated Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-report
+          path: |
+            consolidated-report.md
+            all-reports/**
+          retention-days: 90

@@ -14,10 +14,6 @@ inputs:
     description: "Directories to exclude from scan"
     required: false
     default: ".git,node_modules,venv"
-  database_mirror:
-    description: "ClamAV database mirror to use"
-    required: false
-    default: "database.clamav.net"
   max_file_size:
     description: "Maximum file size to scan in MB"
     required: false
@@ -59,9 +55,14 @@ runs:
     - name: Update virus definitions
       shell: bash
       run: |
-        sudo freshclam --quiet --no-warnings \
-          --datadir="/var/lib/clamav" \
-          --database-mirror=${{ inputs.database_mirror }}
+        # Configure freshclam
+        sudo sed -i 's/^DatabaseMirror.*/DatabaseMirror database.clamav.net/' /etc/clamav/freshclam.conf
+
+        # Update the database
+        sudo freshclam --quiet
+
+        # Wait for the update to complete
+        sleep 5
 
     - name: Get changed files
       if: inputs.scan_scope == 'changed'
@@ -91,7 +92,6 @@ runs:
         ${SCAN_CMD} \
           --max-filesize=${{ inputs.max_file_size }}MB \
           --max-scansize=${{ inputs.max_scan_size }}MB \
-          --database="/var/lib/clamav" \
           ${EXCLUDE_DIRS} \
           ${FILES} 2>&1 | tee ${TEMP_OUTPUT}
 

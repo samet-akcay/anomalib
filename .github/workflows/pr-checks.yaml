@@ -4,12 +4,34 @@ on:
     branches:
       - main
       - "feature/**"
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
+      - "LICENSE"
 
 permissions:
   contents: read
-  security-events: write # Grant required permissions
+  security-events: write
 
 jobs:
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run pre-commit checks
+        uses: ./.github/actions/security/pre-commit
+        with:
+          python-version: "3.10"
+          node-version: "18.15.0"
+          # Optionally configure other inputs
+          # skip: "ruff"
+          # cache: "false"
+
   security:
     name: Security Checks
     uses: ./.github/workflows/security-checks.yaml

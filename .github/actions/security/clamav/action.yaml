@@ -55,13 +55,7 @@ runs:
     - name: Update virus definitions
       shell: bash
       run: |
-        # Configure freshclam
-        sudo sed -i 's/^DatabaseMirror.*/DatabaseMirror database.clamav.net/' /etc/clamav/freshclam.conf
-
-        # Update the database
         sudo freshclam --quiet
-
-        # Wait for the update to complete
         sleep 5
 
     - name: Get changed files
@@ -105,26 +99,31 @@ runs:
         SCAN_EXIT_CODE=${PIPESTATUS[0]}
         echo "exit_code=${SCAN_EXIT_CODE}" >> $GITHUB_OUTPUT
 
-        # Count number of threats found
-        THREATS=$(grep -c "FOUND" ${TEMP_OUTPUT} || true)
-        echo "threats_found=${THREATS}" >> $GITHUB_OUTPUT
+        # Parse scan summary
+        SCANNED_FILES=$(grep "Scanned files:" ${TEMP_OUTPUT} | awk '{print $3}')
+        INFECTED_FILES=$(grep "Infected files:" ${TEMP_OUTPUT} | awk '{print $3}')
+        START_DATE=$(grep "Start Date:" ${TEMP_OUTPUT} | cut -d: -f2- | xargs)
+        END_DATE=$(grep "End Date:" ${TEMP_OUTPUT} | cut -d: -f2- | xargs)
 
         # Generate report in requested format
         if [[ "${{ inputs.output_format }}" == "json" ]]; then
           {
             echo "{"
             echo "  \"scan_summary\": {"
-            echo "    \"files_scanned\": $(grep "Scanned files:" ${TEMP_OUTPUT} | awk '{print $3}'),"
-            echo "    \"threats_found\": ${THREATS},"
-            echo "    \"scan_date\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\""
+            echo "    \"files_scanned\": ${SCANNED_FILES:-0},"
+            echo "    \"threats_found\": ${INFECTED_FILES:-0},"
+            echo "    \"start_date\": \"${START_DATE}\","
+            echo "    \"end_date\": \"${END_DATE}\""
             echo "  },"
             echo "  \"threats\": ["
-            grep "FOUND" ${TEMP_OUTPUT} | awk '{
-              printf "    {\"file\": \"%s\", \"threat\": \"%s\"}%s\n",
-              substr($1, 1, length($1)-1),
-              $NF,
-              (NR == total ? "" : ",")
-            }' total=$(grep -c "FOUND" ${TEMP_OUTPUT} || echo 0)
+            # Only try to process threats if there are any
+            if [ "${INFECTED_FILES:-0}" -gt 0 ]; then
+              grep "FOUND" ${TEMP_OUTPUT} | while IFS= read -r line; do
+                FILE=$(echo "$line" | cut -d: -f1)
+                THREAT=$(echo "$line" | awk '{print $NF}')
+                echo "    {\"file\": \"${FILE}\", \"threat\": \"${THREAT}\"},"
+              done | sed '$ s/,$//'
+            fi
             echo "  ]"
             echo "}"
           } > "${REPORT_FILE}"
@@ -133,9 +132,10 @@ runs:
         fi
 
         echo "report_path=${REPORT_FILE}" >> $GITHUB_OUTPUT
+        echo "threats_found=${INFECTED_FILES:-0}" >> $GITHUB_OUTPUT
 
         rm ${TEMP_OUTPUT}
 
-        if [[ "${{ inputs.fail_on_findings }}" == "true" && ${THREATS} -gt 0 ]]; then
+        if [[ "${{ inputs.fail_on_findings }}" == "true" && "${INFECTED_FILES:-0}" -gt 0 ]]; then
           exit 1
         fi

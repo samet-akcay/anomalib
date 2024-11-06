@@ -26,10 +26,6 @@ inputs:
     description: "Comma-separated security checks to enable"
     required: false
     default: "vuln,config,secret"
-  hide_progress:
-    description: "Hide progress output"
-    required: false
-    default: "true"
   format:
     description: "Output format (table,json,sarif,template)"
     required: false
@@ -82,7 +78,6 @@ runs:
           --severity ${{ inputs.severity }} \
           --security-checks ${{ inputs.security_checks }} \
           --ignore-unfixed=${{ inputs.ignore_unfixed }} \
-          --hide-progress=${{ inputs.hide_progress }} \
           --format ${{ inputs.format }} \
           --output ${REPORT_FILE} \
           --timeout ${{ inputs.timeout }} \

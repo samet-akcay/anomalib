@@ -61,7 +61,6 @@ jobs:
           scan_type: fs
           security_checks: secret
           scan_target: "."
-          format: sarif
 
       # IaC and misconfiguration scanning
       - name: Run Trivy config scan
@@ -71,43 +70,20 @@ jobs:
           scan_type: config
           security_checks: config
           scan_target: "."
-          format: sarif
 
-      # If you use containers, uncomment and modify this step
-      # - name: Run Trivy container scan
-      #   id: trivy-container
-      #   uses: ./.github/actions/security/trivy
-      #   with:
-      #     scan_type: image
-      #     security_checks: "vuln,config,secret"
-      #     scan_target: "your-image:tag"
-      #     format: sarif
-
-      - name: Upload vulnerability results
-        uses: github/codeql-action/upload-sarif@v3
+      # Upload all SARIF files
+      - name: Upload SARIF files to Security tab
         if: always()
-        with:
-          sarif_file: ${{ steps.trivy-vuln.outputs.report_path }}
-          category: trivy-vuln
-
-      - name: Upload secret scan results
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
         with:
-          sarif_file: ${{ steps.trivy-secret.outputs.report_path }}
-          category: trivy-secret
+          sarif_file: reports
+          category: trivy
 
-      - name: Upload config scan results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: ${{ steps.trivy-config.outputs.report_path }}
-          category: trivy-config
-
+      # Archive all reports
       - name: Upload scan artifacts
-        uses: actions/upload-artifact@v4
         if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: security-scan-results
-          path: trivy-*-results.*
+          path: reports/
           retention-days: 5

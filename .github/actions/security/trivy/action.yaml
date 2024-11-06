@@ -25,7 +25,7 @@ inputs:
   security_checks:
     description: "Comma-separated security checks to enable"
     required: false
-    default: "vuln,config,secret"
+    default: "vuln"
   format:
     description: "Output format (table,json,sarif,template)"
     required: false
@@ -42,9 +42,6 @@ outputs:
   report_path:
     description: "Path to the generated report file"
     value: ${{ steps.run-trivy.outputs.report_path }}
-  vuln_count:
-    description: "Number of vulnerabilities found"
-    value: ${{ steps.run-trivy.outputs.vuln_count }}
 
 runs:
   using: composite
@@ -63,7 +60,9 @@ runs:
       id: run-trivy
       shell: bash
       run: |
-        REPORT_FILE="trivy-${{ inputs.scan_type }}-results.${{ inputs.format }}"
+        # Create output directory
+        mkdir -p reports
+        REPORT_FILE="reports/trivy-${{ inputs.scan_type }}-${{ inputs.security_checks }}.sarif"
 
         if [[ "${{ inputs.scan_scope }}" == "changed" && -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
           echo "Running Trivy on changed files"
@@ -73,7 +72,9 @@ runs:
           SCAN_TARGETS="${{ inputs.scan_target }}"
         fi
 
-        # Run Trivy with specified parameters
+        echo "Running Trivy with security checks: ${{ inputs.security_checks }}"
+        echo "Output will be saved to: ${REPORT_FILE}"
+
         trivy ${{ inputs.scan_type }} \
           --severity ${{ inputs.severity }} \
           --security-checks ${{ inputs.security_checks }} \
@@ -81,14 +82,12 @@ runs:
           --format ${{ inputs.format }} \
           --output ${REPORT_FILE} \
           --timeout ${{ inputs.timeout }} \
-          ${SCAN_TARGETS} || echo "exit_code=$?" >> $GITHUB_OUTPUT
+          ${SCAN_TARGETS} || echo "::warning::Trivy scan completed with findings"
 
-        echo "report_path=${REPORT_FILE}" >> $GITHUB_OUTPUT
-
-        # Count vulnerabilities if output is in JSON format
-        if [[ "${{ inputs.format }}" == "json" ]]; then
-          VULN_COUNT=$(jq '[.Results[].Vulnerabilities[]] | length' ${REPORT_FILE})
-          echo "vuln_count=${VULN_COUNT:-0}" >> $GITHUB_OUTPUT
+        if [ -f "${REPORT_FILE}" ]; then
+          echo "report_path=${REPORT_FILE}" >> $GITHUB_OUTPUT
+          echo "Scan report generated at ${REPORT_FILE}"
         else
-          echo "vuln_count=0" >> $GITHUB_OUTPUT
+          echo "::error::Report file was not generated"
+          exit 1
         fi

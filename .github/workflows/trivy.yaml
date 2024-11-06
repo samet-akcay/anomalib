@@ -43,23 +43,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Vulnerability scanning
-      - name: Run Trivy vulnerability scan
-        id: trivy-vuln
+      # Combined vulnerability and secret scanning
+      - name: Run Trivy filesystem scan
+        id: trivy-fs
         uses: ./.github/actions/security/trivy
         with:
           scan_type: fs
-          security_checks: vuln
+          scanners: vuln,secret
           severity: ${{ inputs.severity || 'MEDIUM,HIGH,CRITICAL' }}
-          scan_target: "."
-
-      # Secret scanning
-      - name: Run Trivy secret scan
-        id: trivy-secret
-        uses: ./.github/actions/security/trivy
-        with:
-          scan_type: fs
-          security_checks: secret
           scan_target: "."
 
       # IaC and misconfiguration scanning
@@ -68,7 +59,7 @@ jobs:
         uses: ./.github/actions/security/trivy
         with:
           scan_type: config
-          security_checks: config
+          scanners: config
           scan_target: "."
 
       # Upload all SARIF files

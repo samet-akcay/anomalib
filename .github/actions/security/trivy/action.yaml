@@ -22,8 +22,8 @@ inputs:
     description: "Ignore unpatched/unfixed vulnerabilities"
     required: false
     default: "true"
-  security_checks:
-    description: "Comma-separated security checks to enable"
+  scanners:
+    description: "Scanners to enable (vuln,secret,config)"
     required: false
     default: "vuln"
   format:
@@ -62,27 +62,28 @@ runs:
       run: |
         # Create output directory
         mkdir -p reports
-        REPORT_FILE="reports/trivy-${{ inputs.scan_type }}-${{ inputs.security_checks }}.sarif"
+        REPORT_FILE="reports/trivy-${{ inputs.scan_type }}-${{ inputs.scanners }}.sarif"
 
-        if [[ "${{ inputs.scan_scope }}" == "changed" && -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
-          echo "Running Trivy on changed files"
-          SCAN_TARGETS="${{ steps.changed-files.outputs.all_changed_files }}"
-        else
-          echo "Running Trivy on ${{ inputs.scan_target }}"
-          SCAN_TARGETS="${{ inputs.scan_target }}"
-        fi
-
-        echo "Running Trivy with security checks: ${{ inputs.security_checks }}"
+        echo "Running Trivy with scanners: ${{ inputs.scanners }}"
         echo "Output will be saved to: ${REPORT_FILE}"
+
+        # Always scan the entire directory but use different paths based on scope
+        if [[ "${{ inputs.scan_scope }}" == "changed" && -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
+          echo "Changed files detected, scanning repository"
+          SCAN_TARGET="."
+        else
+          echo "Scanning target: ${{ inputs.scan_target }}"
+          SCAN_TARGET="${{ inputs.scan_target }}"
+        fi
 
         trivy ${{ inputs.scan_type }} \
           --severity ${{ inputs.severity }} \
-          --security-checks ${{ inputs.security_checks }} \
+          --scanners ${{ inputs.scanners }} \
           --ignore-unfixed=${{ inputs.ignore_unfixed }} \
           --format ${{ inputs.format }} \
           --output ${REPORT_FILE} \
           --timeout ${{ inputs.timeout }} \
-          ${SCAN_TARGETS} || echo "::warning::Trivy scan completed with findings"
+          ${SCAN_TARGET} || echo "::warning::Trivy scan completed with findings"
 
         if [ -f "${REPORT_FILE}" ]; then
           echo "report_path=${REPORT_FILE}" >> $GITHUB_OUTPUT

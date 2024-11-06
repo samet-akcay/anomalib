@@ -36,8 +36,8 @@ runs:
       shell: bash
       run: |
         python -m pip install --upgrade pip
-        # Install the package with test dependencies
-        pip install ".[test]"
+        pip install ".[dev]"
+        pip install codecov
 
     - name: Run tests
       id: run-tests
@@ -55,7 +55,8 @@ runs:
             ;;
         esac
 
-        pytest $TEST_PATH -n auto \
+        # Add PYTHONPATH to ensure package is importable
+        PYTHONPATH=src pytest $TEST_PATH -n auto \
           && echo "success=true" >> $GITHUB_OUTPUT \
           || echo "success=false" >> $GITHUB_OUTPUT
 

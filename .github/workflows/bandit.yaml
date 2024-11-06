@@ -1,5 +1,4 @@
 name: Bandit Security Scan
-
 on:
   workflow_dispatch:
     inputs:
@@ -25,15 +24,18 @@ on:
         required: true
         default: true
         type: boolean
-
   pull_request:
-    branches: [main, develop]
+    branches:
+      - main
+      - "feature/**" # This will match any feature/* branch
     paths:
       - "**.py"
       - "pyproject.toml"
       - ".github/workflows/bandit.yaml"
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - "feature/**" # This will match any feature/* branch
     paths:
       - "**.py"
       - "pyproject.toml"

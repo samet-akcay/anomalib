@@ -1,0 +1,12 @@
+name: Test Workflow
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/*
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: echo "Hello World"

@@ -16,33 +16,29 @@ on:
         default: true
         type: boolean
   pull_request:
+    types: [opened, synchronize, reopened]
     branches:
       - main
       - "feature/**"
-    paths-ignore:
-      - "**.md"
-      - "**.txt"
-      - "**.yaml"
-      - "**.yml"
+      - "release/**"
   push:
     branches:
       - main
       - "feature/**"
-    paths-ignore:
-      - "**.md"
-      - "**.txt"
-      - "**.yaml"
-      - "**.yml"
+      - "release/**"
   schedule:
     - cron: "0 0 * * 0" # Weekly scan on Sundays
 
 permissions:
   contents: read
   security-events: write
+  issues: write # Added for creating issues
 
 jobs:
   antivirus-scan:
     runs-on: ubuntu-latest
+    # Add condition to prevent duplicate runs on PRs
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@v4
         with:
@@ -70,7 +66,7 @@ jobs:
           path: ${{ steps.clamav.outputs.report_path }}
 
       - name: Create issue for threats
-        if: steps.clamav.outputs.threats_found > 0
+        if: steps.clamav.outputs.threats_found > 0 && github.event_name != 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
@@ -91,6 +87,9 @@ jobs:
 
             Scan completed at: ${report.scan_summary.scan_date}
             Total files scanned: ${report.scan_summary.files_scanned}
+
+            Triggered by: ${github.event_name}
+            Branch: ${github.ref}
 
             Please investigate these files for potential security risks.`
             });

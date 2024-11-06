@@ -1,4 +1,4 @@
-name: Semgrep SAST Scan
+name: Static Application Security Testing (SAST)
 on:
   workflow_dispatch:
     inputs:
@@ -25,29 +25,30 @@ on:
         default: true
         type: boolean
   pull_request:
+    types: [opened, synchronize, reopened]
     branches:
       - main
+      - master
       - "feature/**"
-    paths-ignore:
-      - "**.md"
-      - "**.txt"
+      - "release/**"
   push:
     branches:
       - main
+      - master
       - "feature/**"
-    paths-ignore:
-      - "**.md"
-      - "**.txt"
+      - "release/**"
 
 permissions:
   contents: read
   security-events: write
+  pull-requests: write # Added for PR comments
 
 jobs:
   security-scan:
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 

@@ -1,0 +1,15 @@
+name: PR Checks
+on:
+  pull_request:
+    branches:
+      - main
+      - "feature/**"
+
+jobs:
+  security:
+    uses: ./.github/workflows/security-checks.yaml
+    with:
+      tools: "bandit,semgrep" # Only run specific tools
+      scan_scope: "changed"
+      severity_level: "medium"
+      fail_on_findings: true

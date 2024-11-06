@@ -13,12 +13,12 @@ on:
       severity_level:
         description: "Minimum severity level"
         required: true
-        default: "LOW"
+        default: "low"
         type: choice
         options:
-          - LOW
-          - MEDIUM
-          - HIGH
+          - low
+          - medium
+          - high
       fail_on_findings:
         description: "Fail workflow if issues found"
         required: true
@@ -63,7 +63,7 @@ jobs:
         uses: ./.github/actions/security/bandit
         with:
           scan_scope: ${{ inputs.scan_scope || 'changed' }}
-          severity_level: ${{ inputs.severity_level || 'LOW' }}
+          severity_level: ${{ inputs.severity_level || 'low' }}
           fail_on_findings: ${{ inputs.fail_on_findings || 'true' }}
           paths: "./src"
           config_file: "pyproject.toml"

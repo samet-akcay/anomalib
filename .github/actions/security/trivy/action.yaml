@@ -89,15 +89,22 @@ runs:
           SCAN_TARGET="${{ inputs.scan_target }}"
         fi
 
-        trivy --cache-dir ~/.cache/trivy \
-          ${{ inputs.scan_type }} \
-          --severity ${{ inputs.severity }} \
-          --scanners ${{ inputs.scanners }} \
-          --ignore-unfixed=${{ inputs.ignore_unfixed }} \
-          --format ${{ inputs.format }} \
-          --output ${REPORT_FILE} \
-          --timeout ${{ inputs.timeout }} \
-          ${SCAN_TARGET} || echo "::warning::Trivy scan completed with findings"
+        # Build the base command
+        CMD="trivy --cache-dir ~/.cache/trivy ${{ inputs.scan_type }} --severity ${{ inputs.severity }} --format ${{ inputs.format }} --output ${REPORT_FILE} --timeout ${{ inputs.timeout }}"
+
+        # Add scanner-specific flags based on scan type
+        if [[ "${{ inputs.scan_type }}" == "config" ]]; then
+          # For config scans, use --misconfig-scanners
+          CMD="$CMD --misconfig-scanners ${{ inputs.scanners }}"
+        elif [[ "${{ inputs.scan_type }}" == "fs" ]]; then
+          # For filesystem scans, use --scanners
+          CMD="$CMD --scanners ${{ inputs.scanners }} --ignore-unfixed=${{ inputs.ignore_unfixed }}"
+        fi
+
+        # Add the scan target and execute
+        CMD="$CMD ${SCAN_TARGET}"
+        echo "Executing command: $CMD"
+        eval $CMD || echo "::warning::Trivy scan completed with findings"
 
         if [ -f "${REPORT_FILE}" ]; then
           echo "report_path=${REPORT_FILE}" >> $GITHUB_OUTPUT

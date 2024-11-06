@@ -14,10 +14,6 @@ inputs:
     description: "Target to scan (path, image name, or repo URL)"
     required: false
     default: "."
-  vuln_type:
-    description: "Vulnerability types to scan for (os,library)"
-    required: false
-    default: "library"
   severity:
     description: "Minimum severity level (UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)"
     required: false
@@ -84,7 +80,6 @@ runs:
         # Run Trivy with specified parameters
         trivy ${{ inputs.scan_type }} \
           --severity ${{ inputs.severity }} \
-          --vuln-type ${{ inputs.vuln_type }} \
           --security-checks ${{ inputs.security_checks }} \
           --ignore-unfixed=${{ inputs.ignore_unfixed }} \
           --hide-progress=${{ inputs.hide_progress }} \

@@ -1,5 +1,4 @@
 name: Security Scan
-
 on:
   workflow_dispatch:
     inputs:
@@ -44,15 +43,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Python-specific vulnerability scanning
-      - name: Run Trivy Python vulnerability scan
-        id: trivy-python
+      # Vulnerability scanning
+      - name: Run Trivy vulnerability scan
+        id: trivy-vuln
         uses: ./.github/actions/security/trivy
         with:
           scan_type: fs
-          vuln_type: library
-          severity: ${{ inputs.severity || 'MEDIUM,HIGH,CRITICAL' }}
           security_checks: vuln
+          severity: ${{ inputs.severity || 'MEDIUM,HIGH,CRITICAL' }}
           scan_target: "."
 
       # Secret scanning
@@ -81,7 +79,6 @@ jobs:
       #   uses: ./.github/actions/security/trivy
       #   with:
       #     scan_type: image
-      #     vuln_type: "os,library"
       #     security_checks: "vuln,config,secret"
       #     scan_target: "your-image:tag"
       #     format: sarif
@@ -90,7 +87,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: ${{ steps.trivy-python.outputs.report_path }}
+          sarif_file: ${{ steps.trivy-vuln.outputs.report_path }}
           category: trivy-vuln
 
       - name: Upload secret scan results

@@ -26,20 +26,18 @@ on:
         type: boolean
   pull_request:
     branches:
-      - main
-      - "feature/**" # This will match any feature/* branch
+      - "main"
+      - "feature/**" # Use double asterisk for deeper path matching
+      - "feature/*" # Also include single level matching
     paths:
       - "**.py"
       - "pyproject.toml"
       - ".github/workflows/bandit.yaml"
   push:
     branches:
-      - main
-      - "feature/**" # This will match any feature/* branch
-    paths:
-      - "**.py"
-      - "pyproject.toml"
-      - ".github/workflows/bandit.yaml"
+      - "main"
+      - "feature/**" # Use double asterisk for deeper path matching
+      - "feature/*" # Also include single level matching
 
 permissions:
   contents: write

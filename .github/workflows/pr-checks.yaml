@@ -5,6 +5,10 @@ on:
       - main
       - "feature/**"
 
+permissions:
+  contents: read
+  security-events: write # Grant required permissions
+
 jobs:
   security:
     uses: ./.github/workflows/security-checks.yaml

@@ -59,7 +59,7 @@ jobs:
         uses: ./.github/actions/security/trivy
         with:
           scan_type: config
-          scanners: config
+          misconfig_scanners: azure-arm,cloudformation,dockerfile,helm,kubernetes,terraform,terraformplan
           scan_target: "."
 
       # Upload all SARIF files

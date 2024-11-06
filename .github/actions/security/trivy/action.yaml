@@ -26,6 +26,10 @@ inputs:
     description: "Scanners to enable (vuln,secret,config)"
     required: false
     default: "vuln"
+  misconfig_scanners:
+    description: "Misconfig scanners to enable (azure-arm,cloudformation,dockerfile,helm,kubernetes,terraform,terraformplan)"
+    required: false
+    default: "azure-arm,cloudformation,dockerfile,helm,kubernetes,terraform,terraformplan"
   format:
     description: "Output format (table,json,sarif,template)"
     required: false
@@ -77,7 +81,7 @@ runs:
         mkdir -p reports
         REPORT_FILE="reports/trivy-${{ inputs.scan_type }}-${{ inputs.scanners }}.sarif"
 
-        echo "Running Trivy with scanners: ${{ inputs.scanners }}"
+        echo "Running Trivy with scan type: ${{ inputs.scan_type }}"
         echo "Output will be saved to: ${REPORT_FILE}"
 
         # Always scan the entire directory but use different paths based on scope
@@ -94,8 +98,8 @@ runs:
 
         # Add scanner-specific flags based on scan type
         if [[ "${{ inputs.scan_type }}" == "config" ]]; then
-          # For config scans, use --misconfig-scanners
-          CMD="$CMD --misconfig-scanners ${{ inputs.scanners }}"
+          # For config scans, use all default misconfig scanners or specified ones
+          CMD="$CMD --misconfig-scanners ${{ inputs.misconfig_scanners }}"
         elif [[ "${{ inputs.scan_type }}" == "fs" ]]; then
           # For filesystem scans, use --scanners
           CMD="$CMD --scanners ${{ inputs.scanners }} --ignore-unfixed=${{ inputs.ignore_unfixed }}"

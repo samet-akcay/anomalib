@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   security:
+    name: Security Checks
     uses: ./.github/workflows/security-checks.yaml
     with:
       tools: "bandit,semgrep" # Only run specific tools

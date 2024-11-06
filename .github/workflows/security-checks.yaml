@@ -74,6 +74,7 @@ permissions:
 
 jobs:
   determine-tools:
+    name: Initialize Security Scans
     runs-on: ubuntu-latest
     outputs:
       run_bandit: ${{ steps.set-tools.outputs.run_bandit }}
@@ -95,6 +96,7 @@ jobs:
         shell: bash
 
   bandit:
+    name: Python Security Scan (Bandit)
     needs: determine-tools
     if: needs.determine-tools.outputs.run_bandit == 'true'
     runs-on: ubuntu-latest
@@ -121,6 +123,7 @@ jobs:
           path: ${{ steps.bandit.outputs.report_path }}
 
   clamav:
+    name: Antivirus Security Scan (ClamAV)
     needs: determine-tools
     if: needs.determine-tools.outputs.run_clamav == 'true'
     runs-on: ubuntu-latest
@@ -145,6 +148,7 @@ jobs:
           path: ${{ steps.clamav.outputs.report_path }}
 
   semgrep:
+    name: Static Analysis (Semgrep)
     needs: determine-tools
     if: needs.determine-tools.outputs.run_semgrep == 'true'
     runs-on: ubuntu-latest
@@ -170,6 +174,7 @@ jobs:
           path: ${{ steps.semgrep.outputs.report_path }}
 
   trivy:
+    name: Vulnerability Scan (Trivy)
     needs: determine-tools
     if: needs.determine-tools.outputs.run_trivy == 'true'
     runs-on: ubuntu-latest

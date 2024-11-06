@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run pre-commit checks
-        uses: ./.github/actions/security/pre-commit
+        uses: ./.github/actions/code-quality/pre-commit
         with:
           python-version: "3.10"
           node-version: "18.15.0"

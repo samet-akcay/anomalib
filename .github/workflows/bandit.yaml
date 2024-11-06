@@ -1,74 +1,12 @@
-name: Bandit Security Scan
+name: Test Workflow
 on:
   workflow_dispatch:
-    inputs:
-      scan_scope:
-        description: "Scan scope (all/changed)"
-        required: true
-        default: "changed"
-        type: choice
-        options:
-          - all
-          - changed
-      severity_level:
-        description: "Minimum severity level"
-        required: true
-        default: "LOW"
-        type: choice
-        options:
-          - LOW
-          - MEDIUM
-          - HIGH
-      fail_on_findings:
-        description: "Fail workflow if issues found"
-        required: true
-        default: true
-        type: boolean
-  pull_request:
-    branches:
-      - "main"
-      - "feature/**" # Use double asterisk for deeper path matching
-      - "feature/*" # Also include single level matching
-    paths:
-      - "**.py"
-      - "pyproject.toml"
-      - ".github/workflows/bandit.yaml"
   push:
     branches:
-      - "main"
-      - "feature/**" # Use double asterisk for deeper path matching
-      - "feature/*" # Also include single level matching
-
-permissions:
-  contents: write
-  security-events: write
-
+      - feature/*
 jobs:
-  security-scan:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.10"
-
-      - name: Run Bandit scan
-        id: bandit
-        uses: ./.github/actions/security/bandit
-        with:
-          scan_scope: ${{ inputs.scan_scope || 'changed' }}
-          severity_level: ${{ inputs.severity_level || 'LOW' }}
-          fail_on_findings: ${{ inputs.fail_on_findings || 'true' }}
-          paths: "./src"
-          config_file: "pyproject.toml"
-
-      - name: Upload scan results
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: bandit-results
-          path: ${{ steps.bandit.outputs.report_path }}
+      - run: echo "Hello World"

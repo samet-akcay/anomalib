@@ -13,6 +13,10 @@ inputs:
   codecov-token:
     description: "Codecov upload token"
     required: true
+  max-test-time:
+    description: "Maximum time in seconds for the test suite to run"
+    required: false
+    default: "300"
 
 outputs:
   coverage-percentage:
@@ -20,39 +24,24 @@ outputs:
     value: ${{ steps.coverage.outputs.percentage }}
   tests-passed:
     description: "Whether all tests passed"
-    value: ${{ steps.run-tests.outputs.success }}
+    value: ${{ steps.test-execution.outputs.success }}
+  test-duration:
+    description: "Total test duration in seconds"
+    value: ${{ steps.test-execution.outputs.duration }}
 
 runs:
   using: composite
   steps:
-    - name: Set up Python
+    - name: Set up Python environment
       uses: actions/setup-python@v5
       with:
         python-version: ${{ inputs.python-version }}
         cache: pip
         cache-dependency-path: pyproject.toml
 
-    - name: Generate requirements hash
-      id: requirements-hash
+    - name: Configure virtual environment
+      id: setup-venv
       shell: bash
-      run: |
-        HASH=$(sha256sum pyproject.toml | cut -d ' ' -f 1)
-        echo "hash=${HASH}" >> $GITHUB_OUTPUT
-
-    - name: Cache virtualenv
-      uses: actions/cache@v4
-      id: cache-venv
-      with:
-        path: |
-          .venv
-          ~/.cache/pip
-        key: venv-${{ runner.os }}-py${{ inputs.python-version }}-${{ steps.requirements-hash.outputs.hash }}
-        restore-keys: |
-          venv-${{ runner.os }}-py${{ inputs.python-version }}-
-
-    - name: Create and activate virtual environment
-      shell: bash
-      if: steps.cache-venv.outputs.cache-hit != 'true'
       run: |
         python -m venv .venv
         source .venv/bin/activate
@@ -60,34 +49,57 @@ runs:
         pip install ".[dev]"
         pip install codecov
 
-    - name: Activate virtual environment
-      shell: bash
-      if: steps.cache-venv.outputs.cache-hit == 'true'
-      run: |
-        source .venv/bin/activate
-
-    - name: Run tests
-      id: run-tests
+    - name: Determine test scope
+      id: test-scope
       shell: bash
       run: |
-        source .venv/bin/activate
         case "${{ inputs.test-type }}" in
           "unit")
-            TEST_PATH="tests/unit"
+            echo "path=tests/unit" >> $GITHUB_OUTPUT
             ;;
           "integration")
-            TEST_PATH="tests/integration"
+            echo "path=tests/integration" >> $GITHUB_OUTPUT
             ;;
           *)
-            TEST_PATH="tests/unit tests/integration"
+            echo "path=tests/unit tests/integration" >> $GITHUB_OUTPUT
             ;;
         esac
 
-        PYTHONPATH=src pytest $TEST_PATH -n auto \
+    - name: Execute test suite
+      id: test-execution
+      shell: bash
+      run: |
+        source .venv/bin/activate
+        start_time=$(date +%s)
+
+        PYTHONPATH=src pytest ${{ steps.test-scope.outputs.path }} \
+          -n auto \
+          --durations=10 \
+          --durations-min=1.0 \
+          --timeout=${{ inputs.max-test-time }} \
+          --json-report --json-report-file=pytest.json \
           && echo "success=true" >> $GITHUB_OUTPUT \
           || echo "success=false" >> $GITHUB_OUTPUT
 
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        echo "duration=${duration}" >> $GITHUB_OUTPUT
+
+    - name: Analyze test performance
+      if: always()
+      shell: bash
+      run: |
+        echo "Test Duration: ${{ steps.test-execution.outputs.duration }} seconds"
+
+        echo "Top 10 slowest tests:"
+        cat pytest.json | jq -r '.tests[] | select(.duration >= 1) | "\(.duration)s \(.name)"' | sort -rn | head -n 10
+
+        if [ "${{ steps.test-execution.outputs.duration }}" -gt "${{ inputs.max-test-time }}" ]; then
+          echo "::warning::Test suite exceeded recommended duration of ${{ inputs.max-test-time }} seconds"
+        fi
+
     - name: Upload coverage to Codecov
+      if: steps.test-execution.outputs.success == 'true'
       shell: bash
       run: |
         source .venv/bin/activate

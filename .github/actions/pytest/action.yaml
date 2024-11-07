@@ -36,7 +36,6 @@ runs:
       id: requirements-hash
       shell: bash
       run: |
-        # Generate hash of all dependencies from pyproject.toml
         HASH=$(sha256sum pyproject.toml | cut -d ' ' -f 1)
         echo "hash=${HASH}" >> $GITHUB_OUTPUT
 
@@ -58,9 +57,7 @@ runs:
         python -m venv .venv
         source .venv/bin/activate
         python -m pip install --upgrade pip
-        # Install development dependencies which include both core and test
         pip install ".[dev]"
-        # Ensure codecov is installed
         pip install codecov
 
     - name: Activate virtual environment
@@ -74,7 +71,6 @@ runs:
       shell: bash
       run: |
         source .venv/bin/activate
-
         case "${{ inputs.test-type }}" in
           "unit")
             TEST_PATH="tests/unit"
@@ -87,15 +83,15 @@ runs:
             ;;
         esac
 
-        # Add PYTHONPATH to ensure package is importable
         PYTHONPATH=src pytest $TEST_PATH -n auto \
           && echo "success=true" >> $GITHUB_OUTPUT \
           || echo "success=false" >> $GITHUB_OUTPUT
 
     - name: Upload coverage to Codecov
       shell: bash
-      env:
-        CODECOV_TOKEN: ${{ inputs.codecov-token }}
       run: |
         source .venv/bin/activate
-        codecov -f coverage.xml -t $CODECOV_TOKEN -F ${{ inputs.test-type }}_py${{ inputs.python-version }}
+        codecov --token "${{ inputs.codecov-token }}" \
+                --file coverage.xml \
+                --flags "${{ inputs.test-type }}_py${{ inputs.python-version }}" \
+                --name "${{ inputs.test-type }} tests (Python ${{ inputs.python-version }})"

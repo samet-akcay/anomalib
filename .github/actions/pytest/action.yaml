@@ -1,0 +1,109 @@
+name: "Python Tests Runner"
+description: "Runs Python unit and integration tests with pytest and uploads coverage to Codecov"
+
+inputs:
+  python-version:
+    description: "Python version to use"
+    required: false
+    default: "3.10"
+  test-type:
+    description: "Type of tests to run (unit/integration/all)"
+    required: false
+    default: "all"
+  codecov-token:
+    description: "Codecov upload token"
+    required: true
+  max-test-time:
+    description: "Maximum time in seconds for the test suite to run"
+    required: false
+    default: "300"
+
+outputs:
+  coverage-percentage:
+    description: "Total coverage percentage"
+    value: ${{ steps.coverage.outputs.percentage }}
+  tests-passed:
+    description: "Whether all tests passed"
+    value: ${{ steps.test-execution.outputs.success }}
+  test-duration:
+    description: "Total test duration in seconds"
+    value: ${{ steps.test-execution.outputs.duration }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python environment
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: pip
+        cache-dependency-path: pyproject.toml
+
+    - name: Configure virtual environment
+      id: setup-venv
+      shell: bash
+      run: |
+        python -m venv .venv
+        source .venv/bin/activate
+        python -m pip install --upgrade pip
+        pip install ".[dev]"
+        pip install codecov
+
+    - name: Determine test scope
+      id: test-scope
+      shell: bash
+      run: |
+        case "${{ inputs.test-type }}" in
+          "unit")
+            echo "path=tests/unit" >> $GITHUB_OUTPUT
+            ;;
+          "integration")
+            echo "path=tests/integration" >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo "path=tests/unit tests/integration" >> $GITHUB_OUTPUT
+            ;;
+        esac
+
+    - name: Execute test suite
+      id: test-execution
+      shell: bash
+      run: |
+        source .venv/bin/activate
+        start_time=$(date +%s)
+
+        PYTHONPATH=src pytest ${{ steps.test-scope.outputs.path }} \
+          -n auto \
+          --durations=10 \
+          --durations-min=1.0 \
+          --timeout=${{ inputs.max-test-time }} \
+          --json-report --json-report-file=pytest.json \
+          && echo "success=true" >> $GITHUB_OUTPUT \
+          || echo "success=false" >> $GITHUB_OUTPUT
+
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        echo "duration=${duration}" >> $GITHUB_OUTPUT
+
+    - name: Analyze test performance
+      if: always()
+      shell: bash
+      run: |
+        echo "Test Duration: ${{ steps.test-execution.outputs.duration }} seconds"
+
+        echo "Top 10 slowest tests:"
+        cat pytest.json | jq -r '.tests[] | select(.duration >= 1) | "\(.duration)s \(.name)"' | sort -rn | head -n 10
+
+        if [ "${{ steps.test-execution.outputs.duration }}" -gt "${{ inputs.max-test-time }}" ]; then
+          echo "::warning::Test suite exceeded recommended duration of ${{ inputs.max-test-time }} seconds"
+        fi
+
+    - name: Upload coverage to Codecov
+      if: steps.test-execution.outputs.success == 'true'
+      shell: bash
+      run: |
+        source .venv/bin/activate
+        codecov --token "${{ inputs.codecov-token }}" \
+                --file coverage.xml \
+                --flags "${{ inputs.test-type }}_py${{ inputs.python-version }}" \
+                --name "${{ inputs.test-type }} tests (Python ${{ inputs.python-version }})"

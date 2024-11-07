@@ -1,0 +1,249 @@
+name: Release Checks
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g., v1.2.3)"
+        required: true
+        type: string
+      dry_run:
+        description: "Perform a dry run without creating a release"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  security-events: write
+  checks: write
+
+jobs:
+  validate-version:
+    name: Validate Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+      is_prerelease: ${{ steps.check-prerelease.outputs.is_prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: get-version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+
+          if ! [[ $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$ ]]; then
+            echo "::error::Invalid version format. Must be vX.Y.Z or vX.Y.Z-rcN"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Check if release candidate
+        id: check-prerelease
+        run: |
+          VERSION="${{ steps.get-version.outputs.version }}"
+          if [[ $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$ ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+  quality-checks:
+    name: Quality Checks
+    needs: validate-version
+    uses: ./.github/workflows/pr-checks.yaml
+    secrets: inherit
+
+  security-scan:
+    name: Security Scan
+    needs: validate-version
+    uses: ./.github/workflows/security-checks.yaml
+    with:
+      tools: "bandit,semgrep,trivy"
+      scan_scope: "all"
+      severity_level: "low"
+      fail_on_findings: true
+    secrets: inherit
+
+  build-artifacts:
+    name: Build Release Artifacts
+    needs: [validate-version, quality-checks, security-scan]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Verify package
+        run: twine check dist/*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 5
+
+  stage-release:
+    name: Stage Release Candidate
+    needs: [validate-version, build-artifacts]
+    environment: staging
+    runs-on: ubuntu-latest
+    if: needs.validate-version.outputs.is_prerelease == 'true'
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Upload to Test PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+          TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
+        run: |
+          python -m pip install --upgrade pip
+          pip install twine
+          twine upload dist/*
+
+      - name: Create Draft Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.validate-version.outputs.version }}
+          name: Release Candidate ${{ needs.validate-version.outputs.version }}
+          draft: true
+          prerelease: true
+          files: dist/*
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+
+  qa-validation:
+    name: QA Validation
+    needs: [validate-version, stage-release]
+    environment:
+      name: qa
+      url: ${{ steps.deployment-url.outputs.url }}
+    runs-on: ubuntu-latest
+    if: needs.validate-version.outputs.is_prerelease == 'true'
+    steps:
+      - name: Set deployment URL
+        id: deployment-url
+        run: |
+          echo "url=https://test.pypi.org/project/${GITHUB_REPOSITORY#*/}/${VERSION}" >> $GITHUB_OUTPUT
+        env:
+          VERSION: ${{ needs.validate-version.outputs.version }}
+
+      - name: Create test environment
+        run: |
+          python -m venv test-env
+          source test-env/bin/activate
+          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ "${GITHUB_REPOSITORY#*/}==${VERSION#v}"
+        env:
+          VERSION: ${{ needs.validate-version.outputs.version }}
+
+      - name: Run smoke tests
+        run: |
+          source test-env/bin/activate
+          # Add your smoke tests here
+          python -c "import ${GITHUB_REPOSITORY#*/}; print(${GITHUB_REPOSITORY#*/}.__version__)"
+
+  create-release:
+    name: Create Production Release
+    needs: [validate-version, build-artifacts, qa-validation]
+    environment: production-release
+    runs-on: ubuntu-latest
+    if: |
+      !inputs.dry_run &&
+      (needs.validate-version.outputs.is_prerelease == 'false' ||
+       (needs.validate-version.outputs.is_prerelease == 'true' && needs.qa-validation.result == 'success'))
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.validate-version.outputs.version }}
+          name: Release ${{ needs.validate-version.outputs.version }}
+          draft: false
+          prerelease: ${{ needs.validate-version.outputs.is_prerelease }}
+          files: dist/*
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          body: |
+            ## Release Notes
+
+            ### Quality Assurance
+            - ✅ All tests passed
+            - ✅ Security scans completed
+            - ✅ Code quality checks passed
+
+            ### Approval Chain
+            - ✅ QA Validation
+            - ✅ Release approval
+
+            ### Installation
+            ```bash
+            pip install ${GITHUB_REPOSITORY#*/}==${VERSION#v}
+            ```
+
+  publish-package:
+    name: Publish to PyPI
+    needs: [validate-version, create-release]
+    environment: production-deploy
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.dry_run && needs.validate-version.outputs.is_prerelease == 'false' }}
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install twine
+          twine upload dist/*
+
+      - name: Create deployment record
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-record
+          path: |
+            dist/
+            .github/workflows/release.yaml
+          retention-days: 90

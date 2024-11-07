@@ -1,0 +1,145 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+      - "feature/**"
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
+      - "LICENSE"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+  checks: write
+
+jobs:
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run pre-commit checks
+        uses: ./.github/actions/code-quality/pre-commit
+        with:
+          python-version: "3.10"
+          node-version: "18.15.0"
+
+  unit-tests:
+    name: Unit Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run unit tests
+        id: test-run
+        uses: ./.github/actions/pytest
+        with:
+          python-version: ${{ matrix.python-version }}
+          test-type: "unit"
+          codecov-token: ${{ secrets.CODECOV_TOKEN }}
+          max-test-time: "300" # 5 minutes
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results-py${{ matrix.python-version }}
+          path: |
+            pytest.xml
+            coverage.xml
+            pytest.json
+          retention-days: 7
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run integration tests
+        id: test-run
+        uses: ./.github/actions/pytest
+        with:
+          test-type: "integration"
+          codecov-token: ${{ secrets.CODECOV_TOKEN }}
+          max-test-time: "1200" # 20 minutes
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: |
+            pytest.xml
+            coverage.xml
+            pytest.json
+          retention-days: 7
+
+  publish-test-results:
+    name: Publish Test Results
+    needs: [unit-tests, integration-tests]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-test-results*"
+          merge-multiple: true
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: "pytest.xml"
+          comment_mode: "off"
+          check_name: "Test Results"
+          action_fail: true
+          action_fail_on_inconclusive: true
+
+  security:
+    name: Security Checks
+    needs: [quality]
+    uses: ./.github/workflows/security-checks.yaml
+    with:
+      tools: "bandit,semgrep"
+      scan_scope: "changed"
+      severity_level: "medium"
+      fail_on_findings: true
+
+  status-check:
+    name: Status Check
+    needs: [quality, unit-tests, integration-tests, security]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check workflow status
+        run: |
+          if [[ "${{ needs.quality.result }}" != "success" ]] || \
+             [[ "${{ needs.unit-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.integration-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.security.result }}" != "success" ]]; then
+            echo "::error::One or more checks failed"
+            exit 1
+          fi

@@ -1,0 +1,199 @@
+name: Security Checks
+on:
+  workflow_call:
+    inputs:
+      tools:
+        description: "Security tools to run (comma-separated: bandit,clamav,semgrep,trivy)"
+        required: false
+        type: string
+        default: "bandit,semgrep,trivy"
+      scan_scope:
+        description: "Scan scope (all/changed)"
+        required: false
+        type: string
+        default: "changed"
+      severity_level:
+        description: "Minimum severity level"
+        required: false
+        type: string
+        default: "low"
+      fail_on_findings:
+        description: "Fail workflow if issues found"
+        required: false
+        type: boolean
+        default: true
+      paths:
+        description: "Paths to scan"
+        required: false
+        type: string
+        default: "."
+
+  workflow_dispatch:
+    inputs:
+      tools:
+        description: "Security tools to run"
+        required: true
+        type: choice
+        options:
+          - all
+          - bandit
+          - clamav
+          - semgrep
+          - trivy
+      scan_scope:
+        description: "Scan scope"
+        required: true
+        type: choice
+        options:
+          - all
+          - changed
+        default: "changed"
+      severity_level:
+        description: "Minimum severity level"
+        required: true
+        type: choice
+        options:
+          - low
+          - medium
+          - high
+        default: "low"
+      fail_on_findings:
+        description: "Fail workflow if issues found"
+        required: true
+        type: boolean
+        default: true
+      paths:
+        description: "Paths to scan"
+        required: false
+        type: string
+        default: "."
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  determine-tools:
+    name: Setup Security Scan Tools
+    runs-on: ubuntu-latest
+    outputs:
+      run_bandit: ${{ steps.set-tools.outputs.run_bandit }}
+      run_clamav: ${{ steps.set-tools.outputs.run_clamav }}
+      run_semgrep: ${{ steps.set-tools.outputs.run_semgrep }}
+      run_trivy: ${{ steps.set-tools.outputs.run_trivy }}
+    steps:
+      - id: set-tools
+        run: |
+          TOOLS="${{ inputs.tools }}"
+          if [[ "$TOOLS" == "all" ]]; then
+            TOOLS="bandit,clamav,semgrep,trivy"
+          fi
+
+          echo "run_bandit=$([[ $TOOLS =~ bandit ]] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+          echo "run_clamav=$([[ $TOOLS =~ clamav ]] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+          echo "run_semgrep=$([[ $TOOLS =~ semgrep ]] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+          echo "run_trivy=$([[ $TOOLS =~ trivy ]] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+        shell: bash
+
+  bandit:
+    name: Python Security Scan (Bandit)
+    needs: determine-tools
+    if: needs.determine-tools.outputs.run_bandit == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Bandit scan
+        id: bandit
+        uses: ./.github/actions/security/bandit
+        with:
+          scan_scope: ${{ inputs.scan_scope }}
+          severity_level: ${{ inputs.severity_level }}
+          fail_on_findings: ${{ inputs.fail_on_findings }}
+          paths: ${{ inputs.paths }}
+          config_file: "pyproject.toml"
+
+      - name: Upload scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-results
+          path: ${{ steps.bandit.outputs.report_path }}
+
+  clamav:
+    name: Antivirus Security Scan (ClamAV)
+    needs: determine-tools
+    if: needs.determine-tools.outputs.run_clamav == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run ClamAV scan
+        id: clamav
+        uses: ./.github/actions/security/clamav
+        with:
+          scan_scope: ${{ inputs.scan_scope }}
+          paths: ${{ inputs.paths }}
+          fail_on_findings: ${{ inputs.fail_on_findings }}
+
+      - name: Upload scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: clamav-results
+          path: ${{ steps.clamav.outputs.report_path }}
+
+  semgrep:
+    name: Static Analysis (Semgrep)
+    needs: determine-tools
+    if: needs.determine-tools.outputs.run_semgrep == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Semgrep scan
+        id: semgrep
+        uses: ./.github/actions/security/semgrep
+        with:
+          scan_scope: ${{ inputs.scan_scope }}
+          paths: ${{ inputs.paths }}
+          severity: ${{ inputs.severity_level }}
+          fail_on_findings: ${{ inputs.fail_on_findings }}
+
+      - name: Upload scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: semgrep-results
+          path: ${{ steps.semgrep.outputs.report_path }}
+
+  trivy:
+    name: Vulnerability Scan (Trivy)
+    needs: determine-tools
+    if: needs.determine-tools.outputs.run_trivy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Trivy scan
+        id: trivy
+        uses: ./.github/actions/security/trivy
+        with:
+          scan_scope: ${{ inputs.scan_scope }}
+          scan_target: ${{ inputs.paths }}
+          severity: ${{ inputs.severity_level }}
+
+      - name: Upload scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-results
+          path: ${{ steps.trivy.outputs.report_path }}

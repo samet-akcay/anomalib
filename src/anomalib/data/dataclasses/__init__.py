@@ -1,108 +1,82 @@
 """Anomalib dataclasses.
 
-This module provides a collection of dataclasses used throughout the Anomalib
+This module provides a collection of Pydantic models used throughout the Anomalib
 library for representing and managing various types of data related to anomaly
 detection tasks.
 
-The dataclasses are organized into two main categories:
-1. Numpy-based dataclasses for handling numpy array data
-2. Torch-based dataclasses for handling PyTorch tensor data
+The models are designed to handle both PyTorch tensors and NumPy arrays, with
+built-in validation and type conversion capabilities. They are organized into
+base models and specific implementations for different data types:
 
-Key Components
--------------
+Base Models
+~~~~~~~~~~
 
-Numpy Dataclasses
-~~~~~~~~~~~~~~~~
+- :class:`TensorField`: Base model for tensor fields
+- :class:`BaseItem`: Base model for single data items
+- :class:`BaseBatch`: Base model for batched data items
 
-- :class:`NumpyImageItem`: Single image item as numpy arrays
-    - Data shape: ``(H, W, C)`` or ``(H, W)`` for grayscale
-    - Labels: Binary classification (0: normal, 1: anomalous)
-    - Masks: Binary segmentation masks ``(H, W)``
+Image Models
+~~~~~~~~~~
 
-- :class:`NumpyImageBatch`: Batch of image data as numpy arrays
-    - Data shape: ``(N, H, W, C)`` or ``(N, H, W)`` for grayscale
-    - Labels: ``(N,)`` binary labels
-    - Masks: ``(N, H, W)`` binary masks
+- :class:`ImageItem`: Model for single image items
+- :class:`ImageBatch`: Model for batched image items
 
-- :class:`NumpyVideoItem`: Single video item as numpy arrays
-    - Data shape: ``(T, H, W, C)`` or ``(T, H, W)`` for grayscale
-    - Labels: Binary classification per video
-    - Masks: ``(T, H, W)`` temporal segmentation masks
+Video Models
+~~~~~~~~~~
 
-- :class:`NumpyVideoBatch`: Batch of video data as numpy arrays
-    - Data shape: ``(N, T, H, W, C)`` or ``(N, T, H, W)`` for grayscale
-    - Labels: ``(N,)`` binary labels
-    - Masks: ``(N, T, H, W)`` batch of temporal masks
+- :class:`VideoItem`: Model for single video items
+- :class:`VideoBatch`: Model for batched video items
 
-Torch Dataclasses
-~~~~~~~~~~~~~~~~
+Depth Models
+~~~~~~~~~~
 
-- :class:`Batch`: Base class for torch-based batch data
-- :class:`DatasetItem`: Base class for torch-based dataset items
-- :class:`DepthItem`: Single depth data item
-    - RGB image: ``(3, H, W)``
-    - Depth map: ``(H, W)``
-- :class:`DepthBatch`: Batch of depth data
-    - RGB images: ``(N, 3, H, W)``
-    - Depth maps: ``(N, H, W)``
-- :class:`ImageItem`: Single image as torch tensors
-    - Data shape: ``(C, H, W)``
-- :class:`ImageBatch`: Batch of images as torch tensors
-    - Data shape: ``(N, C, H, W)``
-- :class:`VideoItem`: Single video as torch tensors
-    - Data shape: ``(T, C, H, W)``
-- :class:`VideoBatch`: Batch of videos as torch tensors
-    - Data shape: ``(N, T, C, H, W)``
-- :class:`InferenceBatch`: Specialized batch for inference results
-    - Predictions: Scores, labels, anomaly maps and masks
-
-These dataclasses provide a structured way to handle various types of data
-in anomaly detection tasks, ensuring type consistency and easy data manipulation
-across different components of the Anomalib library.
+- :class:`DepthItem`: Model for single depth items
+- :class:`DepthBatch`: Model for batched depth items
 
 Example:
--------
->>> from anomalib.data.dataclasses import ImageItem
->>> import torch
->>> item = ImageItem(
-...     image=torch.rand(3, 224, 224),
-...     gt_label=torch.tensor(0),
-...     image_path="path/to/image.jpg"
-... )
->>> item.image.shape
-torch.Size([3, 224, 224])
+    Create and use an image item:
+
+    >>> from anomalib.data.dataclasses import ImageItem
+    >>> import torch
+    >>> item = ImageItem(
+    ...     image=torch.rand(3, 224, 224),
+    ...     gt_label=torch.tensor(0),
+    ...     image_path="path/to/image.jpg"
+    ... )
+    >>> item.image.shape
+    torch.Size([3, 224, 224])
+
+    Convert to numpy:
+    >>> numpy_item = item.to_numpy()
+    >>> type(numpy_item.image)
+    <class 'numpy.ndarray'>
 """
 
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-from .numpy import NumpyImageBatch, NumpyImageItem, NumpyVideoBatch, NumpyVideoItem
-from .torch import (
-    Batch,
-    DatasetItem,
+from anomalib.data.dataclasses.base import BaseBatch, BaseItem, TensorField
+from anomalib.data.dataclasses.models import (
     DepthBatch,
     DepthItem,
     ImageBatch,
     ImageItem,
-    InferenceBatch,
     VideoBatch,
     VideoItem,
 )
 
 __all__ = [
-    # Numpy
-    "NumpyImageItem",
-    "NumpyImageBatch",
-    "NumpyVideoItem",
-    "NumpyVideoBatch",
-    # Torch
-    "DatasetItem",
-    "Batch",
-    "InferenceBatch",
+    # Base
+    "TensorField",
+    "BaseItem",
+    "BaseBatch",
+    # Image
     "ImageItem",
     "ImageBatch",
+    # Video
     "VideoItem",
     "VideoBatch",
+    # Depth
     "DepthItem",
     "DepthBatch",
 ]

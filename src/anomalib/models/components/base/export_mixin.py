@@ -115,6 +115,7 @@ class ExportMixin:
         export_root: Path | str,
         model_file_name: str = "model",
         input_size: tuple[int, int] | None = None,
+        **kwargs,
     ) -> Path:
         """Export model to ONNX format.
 
@@ -123,6 +124,18 @@ class ExportMixin:
             model_file_name (str): Name of the exported model.
             input_size (tuple[int, int] | None): Input image dimensions (height, width).
                 If ``None``, uses dynamic input shape. Defaults to ``None``
+            **kwargs: Additional arguments to pass to torch.onnx.export.
+                See https://pytorch.org/docs/stable/onnx.html#torch.onnx.export for details.
+                Common options include:
+                - opset_version (int): ONNX opset version to use
+                - do_constant_folding (bool): Whether to optimize constant folding
+                - input_names (list[str]): Names of input tensors
+                - output_names (list[str]): Names of output tensors
+                - dynamic_axes (dict): Dynamic axes configuration
+                - custom_opsets (dict): Custom opset versions
+                - export_modules_as_functions (bool): Export modules as functions
+                - verify (bool): Verify the exported model
+                - optimize (bool): Optimize the exported model
 
         Returns:
             Path: Path to the exported ONNX model (.onnx file)
@@ -136,9 +149,15 @@ class ExportMixin:
             >>> model.to_onnx("./exports", input_size=(224, 224))
             PosixPath('./exports/weights/onnx/model.onnx')
 
-            Export model with dynamic input size:
+            Export model with custom options:
 
-            >>> model.to_onnx("./exports")
+            >>> model.to_onnx(
+            ...     "./exports",
+            ...     opset_version=12,
+            ...     do_constant_folding=True,
+            ...     verify=True,
+            ...     optimize=True
+            ... )
             PosixPath('./exports/weights/onnx/model.onnx')
         """
         export_root = _create_export_root(export_root, ExportType.ONNX)
@@ -153,14 +172,16 @@ class ExportMixin:
         # apply pass through the model to get the output names
         assert isinstance(self, LightningModule)  # mypy
         output_names = [name for name, value in self.eval()(input_shape)._asdict().items() if value is not None]
+
         torch.onnx.export(
-            self,
-            (input_shape.to(self.device),),
-            str(onnx_path),
-            opset_version=14,
-            dynamic_axes=dynamic_axes,
-            input_names=["input"],
-            output_names=output_names,
+            model=self,
+            args=(input_shape.to(self.device),),
+            f=str(onnx_path),
+            opset_version=kwargs.pop("opset_version", 14),
+            dynamic_axes=kwargs.pop("dynamic_axes", dynamic_axes),
+            input_names=kwargs.pop("input_names", ["input"]),
+            output_names=kwargs.pop("output_names", output_names),
+            **kwargs,
         )
 
         return onnx_path

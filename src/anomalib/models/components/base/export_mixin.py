@@ -194,8 +194,9 @@ class ExportMixin:
         compression_type: CompressionType | None = None,
         datamodule: AnomalibDataModule | None = None,
         metric: Metric | None = None,
-        ov_args: dict[str, Any] | None = None,
         task: TaskType | None = None,
+        ov_kwargs: dict[str, Any] | None = None,
+        onnx_kwargs: dict[str, Any] | None = None,
     ) -> Path:
         """Export model to OpenVINO IR format.
 
@@ -211,10 +212,13 @@ class ExportMixin:
                 Required for ``INT8_PTQ`` and ``INT8_ACQ``. Defaults to ``None``
             metric (Metric | None): Metric for accuracy-aware quantization.
                 Required for ``INT8_ACQ``. Defaults to ``None``
-            ov_args (dict[str, Any] | None): OpenVINO model optimizer arguments.
-                Defaults to ``None``
             task (TaskType | None): Task type (classification/segmentation).
                 Defaults to ``None``
+            ov_kwargs (dict[str, Any] | None): OpenVINO model optimizer arguments.
+                Defaults to ``None``
+            onnx_kwargs (dict[str, Any] | None): Additional arguments to pass to torch.onnx.export
+                during the initial ONNX conversion. See https://pytorch.org/docs/stable/onnx.html#torch.onnx.export
+                for details. Defaults to ``None``
 
         Returns:
             Path: Path to the exported OpenVINO model (.xml file)
@@ -232,12 +236,14 @@ class ExportMixin:
             ...     compression_type=CompressionType.FP16
             ... )
 
-            Export with INT8 post-training quantization:
+            Export with INT8 post-training quantization and custom options:
 
             >>> model.to_openvino(
             ...     "./exports",
             ...     compression_type=CompressionType.INT8_PTQ,
-            ...     datamodule=datamodule
+            ...     datamodule=datamodule,
+            ...     ov_kwargs={"input_shape": [1, 3, 224, 224]},
+            ...     onnx_kwargs={"opset_version": 12, "do_constant_folding": True}
             ... )
         """
         if not module_available("openvino"):
@@ -247,12 +253,11 @@ class ExportMixin:
         import openvino as ov
 
         with TemporaryDirectory() as onnx_directory:
-            model_path = self.to_onnx(onnx_directory, model_file_name, input_size)
+            model_path = self.to_onnx(onnx_directory, model_file_name, input_size, **(onnx_kwargs or {}))
             export_root = _create_export_root(export_root, ExportType.OPENVINO)
             ov_model_path = export_root / (model_file_name + ".xml")
-            ov_args = {} if ov_args is None else ov_args
 
-            model = ov.convert_model(model_path, **ov_args)
+            model = ov.convert_model(model_path, **(ov_kwargs or {}))
             if compression_type and compression_type != CompressionType.FP16:
                 model = self._compress_ov_model(model, compression_type, datamodule, metric, task)
 

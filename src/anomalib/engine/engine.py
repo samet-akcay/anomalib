@@ -654,6 +654,7 @@ class Engine:
             dataloaders.append(DataLoader(dataset, collate_fn=dataset.collate_fn))
         if data_path is not None:
             dataset = PredictDataset(data_path)
+            # nosemgrep: trailofbits.python.automatic-memory-pinning.automatic-memory-pinning  # noqa: ERA001
             dataloaders.append(DataLoader(dataset, collate_fn=dataset.collate_fn))
         dataloaders = dataloaders or None
 

@@ -739,6 +739,7 @@ class Engine:
         metric: Metric | str | None = None,
         ov_args: dict[str, Any] | None = None,  # deprecated
         ov_kwargs: dict[str, Any] | None = None,
+        onnx_kwargs: dict[str, Any] | None = None,
         ckpt_path: str | Path | None = None,
     ) -> Path | None:
         r"""Export the model in PyTorch, ONNX or OpenVINO format.
@@ -751,7 +752,8 @@ class Engine:
             model_file_name (str = "model"): Name of the exported model file. If it is not set, the model is
                 is called "model". Defaults to "model".
             input_size (tuple[int, int] | None, optional): A statis input shape for the model, which is exported to ONNX
-                and OpenVINO format. Defaults to None.
+                and OpenVINO format.
+                Defaults to ``None.
             compression_type (CompressionType | None, optional): Compression type for OpenVINO exporting only.
                 Defaults to ``None``.
             datamodule (AnomalibDataModule | None, optional): Lightning datamodule.
@@ -767,6 +769,10 @@ class Engine:
                 Defaults to None.
             ov_kwargs (dict[str, Any] | None, optional): This is optional and used only for OpenVINO's model optimizer.
                 Defaults to None.
+            onnx_kwargs (dict[str, Any] | None, optional): This is optional and used only for ONNX export options.
+                Passed to model.to_onnx or model.to_openvino.
+                See https://pytorch.org/docs/stable/onnx.html#torch.onnx.export for details.
+                Defaults to ``None``.
             ckpt_path (str | Path | None): Checkpoint path. If provided, the model will be loaded from this path.
 
         Returns:
@@ -834,6 +840,7 @@ class Engine:
                 export_root=export_root,
                 model_file_name=model_file_name,
                 input_size=input_size,
+                **(onnx_kwargs or {}),
             )
         elif export_type == ExportType.OPENVINO:
             exported_model_path = model.to_openvino(
@@ -844,6 +851,7 @@ class Engine:
                 datamodule=datamodule,
                 metric=metric,
                 ov_kwargs=ov_kwargs,
+                onnx_kwargs=onnx_kwargs,
             )
         else:
             logging.error(f"Export type {export_type} is not supported yet.")

@@ -190,27 +190,27 @@ class AnomalyMapGenerator(nn.Module):
             torch.Tensor: Log probability tensor of shape ``(batch_size, 1,
                 height, width)``
         """
-        tau = st.chi2.ppf(probability_thr, 1)
-        half_win = np.max([int(window_size // 2), 1])
+        tau = torch.tensor(st.chi2.ppf(probability_thr, 1))
+        half_win = max(int(window_size // 2), 1)
 
         n_chann = z.shape[1]
 
         # Candidates
         z2 = F.pad(z**2, tuple(4 * [half_win]), "reflect").detach().cpu()
         z2_unfold_h = z2.unfold(-2, 2 * half_win + 1, 1)
-        z2_unfold_hw = z2_unfold_h.unfold(-2, 2 * half_win + 1, 1).numpy()
-        observed_candidates_k = np.sum(z2_unfold_hw >= tau, axis=(-2, -1))
+        z2_unfold_hw = z2_unfold_h.unfold(-2, 2 * half_win + 1, 1)
+        observed_candidates_k = torch.sum(z2_unfold_hw >= tau, dim=(-2, -1))
 
         # All volume together
-        observed_candidates = np.sum(observed_candidates_k, axis=1, keepdims=True)
+        observed_candidates = torch.sum(observed_candidates_k, dim=1, keepdim=True)
         x = observed_candidates / n_chann
         n = int((2 * half_win + 1) ** 2)
 
         # Low precision
         if not high_precision:
-            log_prob = torch.tensor(st.binom.logsf(x, n, 1 - probability_thr) / np.log(10))
-        # High precision - good and slow
+            log_prob = torch.tensor(st.binom.logsf(x.numpy(), n, 1 - probability_thr) / torch.log(torch.tensor(10.0)))
         else:
+            # High precision - good and slow
             to_mp = np.frompyfunc(mp.mpf, 1, 1)
             mpn = mp.mpf(n)
             mpp = probability_thr
@@ -222,7 +222,7 @@ class AnomalyMapGenerator(nn.Module):
                 return integrate.quad(binomial_density, tensor, n)[0]
 
             integral_array = np.vectorize(integral)
-            prob = integral_array(x)
+            prob = integral_array(x.numpy())
             log_prob = torch.tensor(np.log10(prob))
 
         return log_prob

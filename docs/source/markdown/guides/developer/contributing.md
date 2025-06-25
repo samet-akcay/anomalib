@@ -200,6 +200,8 @@ Set up your development environment to start contributing. This involves install
 
    :::{dropdown} Development Workflow
    :icon: terminal
+   <summary>Using Commitizen</summary>
+   1. Stage your changes and create a commit using Commitizen:
 
    **During Development:**
    Individual commits can use any format for convenience:

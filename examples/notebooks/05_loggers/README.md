@@ -1,6 +1,6 @@
 # Using the MLFlow Logger
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/openvinotoolkit/anomalib/blob/main/examples/notebooks/04_loggers/mlflow.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/openvinotoolkit/anomalib/blob/main/examples/notebooks/05_loggers/mlflow.ipynb)
 
 ## Notebook Contents
 

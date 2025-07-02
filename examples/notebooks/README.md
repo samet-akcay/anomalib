@@ -22,8 +22,8 @@ The notebooks are organized in a logical learning progression:
 | **Getting Started** | [`01_getting_started/`](01_getting_started/) | Basic training and inference workflows                 |
 | **Data**            | [`02_data/`](02_data/)                       | Working with datasets, datamodules, and data utilities |
 | **Models**          | [`03_models/`](03_models/)                   | Training and using different anomaly detection models  |
-| **Loggers**         | [`04_loggers/`](04_loggers/)                 | Logging and experiment tracking                        |
-| **Metrics**         | [`05_metrics/`](05_metrics/)                 | Evaluation metrics and performance analysis            |
+| **Metrics**         | [`04_metrics/`](04_metrics/)                 | Evaluation metrics and performance analysis            |
+| **Loggers**         | [`05_loggers/`](05_loggers/)                 | Logging and experiment tracking                        |
 | **Visualization**   | [`06_visualization/`](06_visualization/)     | Visualizing results and anomaly maps                   |
 | **Deployment**      | [`07_deployment/`](07_deployment/)           | Model optimization and deployment                      |
 
@@ -34,8 +34,8 @@ Start with the **Getting Started** section to learn the basics, then progress th
 1. **[01_getting_started](01_getting_started/)** - Learn basic anomalib workflows
 2. **[02_data](02_data/)** - Understand data handling and preprocessing
 3. **[03_models](03_models/)** - Explore different anomaly detection models
-4. **[04_loggers](04_loggers/)** - Track experiments and results
-5. **[05_metrics](05_metrics/)** - Evaluate model performance
+4. **[04_metrics](04_metrics/)** - Evaluate model performance
+5. **[05_loggers](05_loggers/)** - Track experiments and results
 6. **[06_visualization](06_visualization/)** - Visualize and interpret results
 7. **[07_deployment](07_deployment/)** - Deploy models for production use
 

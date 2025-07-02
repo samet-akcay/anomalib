@@ -33,14 +33,24 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.mathjax",
     "sphinx_design",
-    "myst_parser",
-    "nbsphinx",
+    "myst_nb",  # myst_nb includes myst_parser functionality
     "sphinx.ext.napoleon",
     "sphinx_autodoc_typehints",
     "sphinx_copybutton",
     "sphinx.ext.intersphinx",
     "sphinx.ext.autosectionlabel",
 ]
+
+# MyST-NB Configuration
+nb_execution_mode = "off"  # "auto", "force", "cache", or "off" - temporarily off for setup
+nb_execution_cache_path = "_build/.jupyter_cache"
+nb_execution_excludepatterns = [
+    "*checkpoint*",
+    "*/.ipynb_checkpoints/*",
+]
+nb_execution_timeout = 300
+nb_execution_allow_errors = False
+nb_execution_show_tb = True
 
 # MyST configuration
 myst_enable_extensions = [
@@ -52,15 +62,16 @@ myst_enable_extensions = [
     "fieldlist",
     "amsmath",
     "dollarmath",
+    "attrs_inline",
+    "attrs_block",
 ]
+
+# MyST-NB specific configuration
+nb_render_markdown_format = "myst"  # Ensure MyST rendering in notebooks
+nb_custom_formats = {".md": ["jupytext.reads", {"fmt": "mystnb"}]}
 
 # Add separate setting for eval-rst
 myst_enable_eval_rst = True
-
-# Notebook handling
-nbsphinx_allow_errors = True
-nbsphinx_execute = "auto"  # Execute notebooks during build
-nbsphinx_timeout = 300  # Timeout in seconds
 
 # Templates and patterns
 templates_path = ["_templates"]

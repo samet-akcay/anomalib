@@ -1,6 +1,6 @@
 # Deployment
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/openvinotoolkit/anomalib/blob/main/examples/notebooks/07_deployment/openvino_quantization.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/open-edge-platform/anomalib/blob/main/examples/notebooks/07_deployment/openvino_quantization.ipynb)
 
 This section contains notebooks that demonstrate model deployment and optimization techniques.
 
@@ -12,7 +12,7 @@ This section contains notebooks that demonstrate model deployment and optimizati
 
 ## Installation Instructions
 
-If you have not installed all required dependencies, follow the [Installation Guide](https://openvinotoolkit.github.io/anomalib/getting_started/installation/index.html).
+If you have not installed all required dependencies, follow the [Installation Guide](https://open-edge-platform.github.io/anomalib/getting_started/installation/index.html).
 
 ## Notebook Contents
 

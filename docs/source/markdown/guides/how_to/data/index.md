@@ -28,9 +28,8 @@ Learn how to use Anomalib's Datamodules for different modalities and batch proce
 :::
 
 :::{grid-item-card} {octicon}`database` Custom Data
-
-<!-- :link: ./custom_data
-:link-type: doc -->
+:link: /notebooks/02_data/datamodules/folder
+:link-type: doc
 
 Learn more about how to use `Folder` dataset to train anomalib models on your custom data.
 :::
@@ -58,6 +57,7 @@ Learn more about how to use the tiler for input tiling.
 ./dataclasses
 ./datasets
 ./datamodules
+/notebooks/02_data/datamodules/folder
 ./transforms
 ./input_tiling
 ```

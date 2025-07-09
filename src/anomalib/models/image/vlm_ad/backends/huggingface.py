@@ -86,16 +86,19 @@ class Huggingface(Backend):
     def __init__(
         self,
         model_name: str,
+        revision: str = "main",
     ) -> None:
         """Initialize the Huggingface backend.
 
         Args:
             model_name (str): Name of the Hugging Face model to use
+            revision (str, optional): Model revision to use. Defaults to "main".
         """
         self.model_name: str = model_name
         self._ref_images: list[str] = []
         self._processor: ProcessorMixin | None = None
         self._model: PreTrainedModel | None = None
+        self.revision: str = revision
 
     @property
     def processor(self) -> "ProcessorMixin":
@@ -111,7 +114,15 @@ class Huggingface(Backend):
             if transformers is None:
                 msg = "transformers is not installed."
                 raise ValueError(msg)
-            self._processor = transformers.LlavaNextProcessor.from_pretrained(self.model_name)
+            loaded_processor = transformers.LlavaNextProcessor.from_pretrained(
+                self.model_name,
+                revision=self.revision,
+            )
+            if isinstance(loaded_processor, tuple):
+                self._processor = loaded_processor[0]
+            else:
+                self._processor = loaded_processor
+        assert self._processor is not None
         return self._processor
 
     @property
@@ -128,7 +139,15 @@ class Huggingface(Backend):
             if transformers is None:
                 msg = "transformers is not installed."
                 raise ValueError(msg)
-            self._model = transformers.LlavaNextForConditionalGeneration.from_pretrained(self.model_name)
+            loaded_model = transformers.LlavaNextForConditionalGeneration.from_pretrained(
+                self.model_name,
+                revision=self.revision,
+            )
+            if isinstance(loaded_model, tuple):
+                self._model = loaded_model[0]
+            else:
+                self._model = loaded_model
+        assert self._model is not None
         return self._model
 
     @staticmethod

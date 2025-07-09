@@ -1,3 +1,6 @@
+# Copyright (C) 2022-2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 """Utilities for Neural Network Compression Framework (NNCF) optimization.
 
 This module provides utility functions and classes for working with Intel's Neural Network
@@ -10,9 +13,6 @@ The module contains:
 - Functions for wrapping PyTorch models with NNCF compression
 - Utilities for handling NNCF model states and configurations
 """
-
-# Copyright (C) 2022-2025 Intel Corporation
-# SPDX-License-Identifier: Apache-2.0
 
 import logging
 from copy import copy
@@ -357,9 +357,9 @@ def _merge_dicts_and_lists_b_into_a(
     """
 
     def _err_str(_a: dict | list, _b: dict | list, _key: int | str | None = None) -> str:
-        _key_str = "of whole structures" if _key is None else f"during merging for key=`{_key}`"
+        key_str = "of whole structures" if _key is None else f"during merging for key=`{_key}`"
         return (
-            f"Error in merging parts of config: different types {_key_str}, type(a) = {type(_a)}, type(b) = {type(_b)}"
+            f"Error in merging parts of config: different types {key_str}, type(a) = {type(_a)}, type(b) = {type(_b)}"
         )
 
     if not (isinstance(a, dict | list)):

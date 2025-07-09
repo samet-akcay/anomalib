@@ -1,3 +1,6 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 """Base classes for thresholding metrics.
 
 This module provides base classes for implementing threshold-based metrics for
@@ -23,9 +26,6 @@ Example:
     >>> threshold.compute()
     tensor(0.5)
 """
-
-# Copyright (C) 2024 Intel Corporation
-# SPDX-License-Identifier: Apache-2.0
 
 import torch
 from torchmetrics import Metric
@@ -65,7 +65,7 @@ class Threshold(Metric):
         """
         super().__init__(**kwargs)
 
-    def compute(self) -> torch.Tensor:  # noqa: PLR6301
+    def compute(self) -> torch.Tensor:
         """Compute the threshold value.
 
         Returns:
@@ -77,7 +77,7 @@ class Threshold(Metric):
         msg = "Subclass of Threshold must implement the compute method"
         raise NotImplementedError(msg)
 
-    def update(self, *args, **kwargs) -> None:  # noqa: ARG002, PLR6301
+    def update(self, *args, **kwargs) -> None:
         """Update the metric state with new data.
 
         Args:

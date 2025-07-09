@@ -1,3 +1,6 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 """MVTec AD Dataset.
 
 This module provides PyTorch Dataset implementation for the MVTec AD dataset. The
@@ -23,9 +26,6 @@ Reference:
     IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR),
     9584-9592.
 """
-
-# Copyright (C) 2024 Intel Corporation
-# SPDX-License-Identifier: Apache-2.0
 
 from collections.abc import Sequence
 from pathlib import Path
@@ -165,7 +165,7 @@ def make_mvtec_ad_dataset(
         extensions = IMG_EXTENSIONS
 
     root = validate_path(root)
-    samples_list = [(str(root),) + f.parts[-3:] for f in root.glob(r"**/*") if f.suffix in extensions]
+    samples_list = [(str(root), *f.parts[-3:]) for f in root.glob(r"**/*") if f.suffix in extensions]
     if not samples_list:
         msg = f"Found 0 images in {root}"
         raise RuntimeError(msg)

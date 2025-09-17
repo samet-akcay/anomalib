@@ -16,6 +16,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+## [v2.2.0] - 2025-09-17
+
+### Added
+
+- 🚀 Add conventional commit enforcement and automation (#2773)
+- 🚀 Implement type-safe deprecation decorator with version support (#2771)
+
+### Fixed
+
+- 🐞 **docs**: revert correct symlink and update pre-commit config (#2875)
+- 🐞 **deploy**: Fix discrepancy between lightning and standalone inferencers (#2843)
+- 🐞 **docs**: revert correct symlink (#2854)
+- 🐞 **imports**: update OpenVINO import paths in inferencer and post-processor (#2829, #2789)
+- 🐞 **data**: MVTecAD2 CLI bug fix enum serialisation (#2817)
+- 🐞 **model**: remove in-place ops in CombinedDensityEstimator.predict for ONNX dynamic_axes export (#2808)
+- 🐞 **download**: enhance URL validation and update download logic
+- 🐞 **model**: update anomaly map generation to use torch tensors for calculations
+- 🐞 **model**: update logit_scale initialization to use torch.log for consistency
+- 🐞 **data**: enable pin_memory for DataLoader instances across the codebase
+- 🐞 **export**: enhance model export with flexible kwargs support for ONNX and OpenVINO (#2780)
+- 🐞 **visualization**: modify the image font loading logic to ensure the right font is installed (#2783)
+- 🐞 **data**: enhance ToNumpyMixin for improved tensor conversion (#2775)
+
+### Changed
+
+- 🔧 **model**: enhance anomaly map generation with PyTorch for statistical calculations
+- 🔧 **models**: streamline decoder retrieval in function
+- 🔧 **visualizer**: remove unnecessary warning log in `visualize_image_item` (#2778)
+
 ## [v2.1.0]
 
 ### Added
